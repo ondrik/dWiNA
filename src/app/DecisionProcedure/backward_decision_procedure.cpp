@@ -106,7 +106,7 @@ MacroTransMTBDDNew GetMTBDDForPostNew(Automaton & aut, StateType state, unsigned
 
 		for (StateType itState : states)
 		{
-			if (NewStateSet::GetSetForHandle(itState).empty()) {
+			if ((level > 1) && NewStateSet::GetSetForHandle(itState).empty()) {
 				continue;
 			}
 			MacroTransMTBDDNew nextPost = GetMTBDDForPostNew(aut, itState, level-1, prefix);
@@ -317,7 +317,7 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 			{
 #ifdef DEBUG_BDP
 				std::cerr << "[computeFinalStates] adding predecessor: ";
-				NewStateSet::DumpHandle(std::cerr, state, detNo+1);
+				NewStateSet::DumpHandle(std::cerr, state, detNo);
 				std::cerr << "\n";
 #endif
 				worklist.push_back(state);
