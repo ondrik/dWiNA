@@ -77,39 +77,40 @@ bool isNotEnqueued(StateSetList & queue, MacroStateSet*& state, unsigned level) 
  * @return: true if there exists a sat example
  */
 bool existsSatisfyingExample(Automaton & aut, MacroStateSet* initialState, PrefixListType formulaPrefixSet) {
-	unsigned int determinizationNo = formulaPrefixSet.size();
-	bool stateIsFinal;
-
-	StateSetList worklist;
-	StateSetList processed;
-	worklist.push_back(initialState);
-
-	// while we have states to handle
-	while(worklist.size() != 0) {
-		TStateSet* q = worklist.back();
-		worklist.pop_back();
-		processed.push_back(q);
-
-		// if some state is final then, there exists a satisfying example
-		if(StateIsFinal(aut, q, determinizationNo, formulaPrefixSet)) {
-			return true;
-		} else {
-			// construct the post of the state
-			const MacroTransMTBDD & postMTBDD = GetMTBDDForPost(aut, q, determinizationNo, formulaPrefixSet);
-
-			// collect reachable state to one macro state which is the successor of this procedure
-			StateSetList reachable;
-			MacroStateCollectorFunctor msc(reachable);
-			msc(postMTBDD);
-
-			// push all successors to worklist
-			for (auto it = reachable.begin(); it != reachable.end(); ++it) {
-				if (isNotEnqueued(processed, *it, determinizationNo)) {
-					worklist.push_back(*it);
-				}
-			}
-		}
-	}
+	// unsigned int determinizationNo = formulaPrefixSet.size();
+	// bool stateIsFinal;
+  //
+	// NewStateSetList worklist;
+	// NewStateSetList processed;
+	// worklist.push_back(initialState);
+  //
+	// // while we have states to handle
+	// while(worklist.size() != 0) {
+	// 	StateType q = worklist.back();
+	// 	worklist.pop_back();
+	// 	processed.push_back(q);
+  //
+	// 	// if some state is final then, there exists a satisfying example
+	// 	if(StateIsFinal(aut, q, determinizationNo, formulaPrefixSet)) {
+	// 		return true;
+	// 	} else {
+	// 		// construct the post of the state
+	// 		const MacroTransMTBDD & postMTBDD = GetMTBDDForPost(aut, q, determinizationNo, formulaPrefixSet);
+  //
+	// 		// collect reachable state to one macro state which is the successor of this procedure
+	// 		StateSetList reachable;
+	// 		MacroStateCollectorFunctor msc(reachable);
+	// 		msc(postMTBDD);
+  //
+	// 		// push all successors to worklist
+	// 		for (auto it = reachable.begin(); it != reachable.end(); ++it) {
+	// 			if (isNotEnqueued(processed, *it, determinizationNo)) {
+	// 				worklist.push_back(*it);
+	// 			}
+	// 		}
+	// 	}
+	// }
+	assert(false);
 
 	// didn't find a accepting state, ending
 	return false;
@@ -222,68 +223,67 @@ int decideWS1S(Automaton & aut, PrefixListType formulaPrefixSet, PrefixListType 
  * @param level: level of projection
  * @return True if the macro-state is final
  */
-bool StateIsFinal(Automaton & aut, TStateSet* state, unsigned level, PrefixListType & prefix) {
-	// return whether the state is final in automaton
-	if (level == 0) {
-		LeafStateSet* leaf = reinterpret_cast<LeafStateSet*>(state);
-		StateType q = leaf->state;
-		return aut.IsStateFinal(q);
-	// level > 0
-	} else {
-		StateSetList worklist;
-		StateSetList processed;
-		MacroStateSet* macroState = reinterpret_cast<MacroStateSet*>(state);
-
-		// Look into Cache
-		bool isFinal;
-#ifdef USE_STATECACHE
-		if(StateCache.retrieveFromCache(macroState, isFinal, level)) {
-			return isFinal;
-		}
-#endif
-
-		// enqueue initial states
-		StateSetList states = macroState->getMacroStates();
-		for (auto state : states) {
-			worklist.push_back(state);
-		}
-
-		while (worklist.size() != 0) {
-			TStateSet* q = worklist.back();
-			worklist.pop_back();
-			processed.push_back(q);
-
-			if (StateIsFinal(aut, q, level - 1, prefix)) {
-#ifdef USE_STATECACHE
-				StateCache.storeIn(macroState, false, level);
-#endif
-				return false;
-			} else {
-				// Enqueue all its successors
-				MacroStateSet* zeroSuccessor = GetZeroPost(aut, q, level-1, prefix);
-				if ((level - 1) == 0) {
-					StateSetList s = zeroSuccessor->getMacroStates();
-					for(auto it = s.begin(); it != s.end(); ++it) {
-						if(isNotEnqueued(processed, *it, level-1)) {
-							StateType leafState = reinterpret_cast<LeafStateSet*>(*it)->state;
-							worklist.push_back(*it);
-						}
-					}
-				} else {
-					if (isNotEnqueued(processed, zeroSuccessor, level-1)) {
-
-						worklist.push_back(zeroSuccessor);
-					}
-				}
-			}
-		}
-
-#ifdef USE_STATECACHE
-		StateCache.storeIn(macroState, true, level);
-#endif
-		return true;
-	}
-
+bool StateIsFinal(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix) {
+// 	// return whether the state is final in automaton
+// 	if (level == 0) {
+// 		return aut.IsStateFinal(state);
+// 	// level > 0
+// 	} else {
+// 		NewStateSetList worklist;
+// 		NewStateSetList processed;
+// 		const SetOfStates& macroState = NewStateSet::GetSetForHandle(state);
+//
+// 		// Look into Cache
+// 		bool isFinal;
+// #ifdef USE_STATECACHE
+// 		if(StateCache.retrieveFromCache(macroState, isFinal, level)) {
+// 			return isFinal;
+// 		}
+// #endif
+//
+// 		// enqueue initial states
+// 		StateSetList states = macroState->getMacroStates();
+// 		for (auto state : states) {
+// 			worklist.push_back(state);
+// 		}
+//
+// 		while (worklist.size() != 0) {
+// 			TStateSet* q = worklist.back();
+// 			worklist.pop_back();
+// 			processed.push_back(q);
+//
+// 			if (StateIsFinal(aut, q, level - 1, prefix)) {
+// #ifdef USE_STATECACHE
+// 				StateCache.storeIn(macroState, false, level);
+// #endif
+// 				return false;
+// 			} else {
+// 				// Enqueue all its successors
+// 				MacroStateSet* zeroSuccessor = GetZeroPost(aut, q, level-1, prefix);
+// 				if ((level - 1) == 0) {
+// 					StateSetList s = zeroSuccessor->getMacroStates();
+// 					for(auto it = s.begin(); it != s.end(); ++it) {
+// 						if(isNotEnqueued(processed, *it, level-1)) {
+// 							StateType leafState = reinterpret_cast<LeafStateSet*>(*it)->state;
+// 							worklist.push_back(*it);
+// 						}
+// 					}
+// 				} else {
+// 					if (isNotEnqueued(processed, zeroSuccessor, level-1)) {
+//
+// 						worklist.push_back(zeroSuccessor);
+// 					}
+// 				}
+// 			}
+// 		}
+//
+// #ifdef USE_STATECACHE
+// 		StateCache.storeIn(macroState, true, level);
+// #endif
+// 		return true;
+// 	}
+	assert(false);
+	return false;
 }
 
 /**
@@ -448,10 +448,11 @@ MacroStateSet* constructInitialState(Automaton & aut, unsigned numberOfDetermini
  * @return: zero post of initial @p state
  */
 MacroStateSet* GetZeroPost(Automaton & aut, TStateSet*& state, unsigned level, PrefixListType & prefix) {
-	const MacroTransMTBDD & transPost = GetMTBDDForPost(aut, state, level, prefix);
-	MacroStateSet *postStates = transPost.GetValue(constructUniversalTrack());
-
-	return postStates;
+	// const MacroTransMTBDD & transPost = GetMTBDDForPost(aut, state, level, prefix);
+	// MacroStateSet *postStates = transPost.GetValue(constructUniversalTrack());
+  //
+	// return postStates;
+	assert(false);
 }
 
 /**
@@ -465,30 +466,31 @@ MacroStateSet* GetZeroPost(Automaton & aut, TStateSet*& state, unsigned level, P
  * @return zero post of initial @p state
  */
 MacroStateSet* GetZeroMacroPost(Automaton & aut, TStateSet*& state, unsigned level, PrefixListType & prefix) {
-	if(level == 0) {
-		return GetZeroPost(aut, state, level, prefix);
-	} else {
-		if(level == 1 && (((MacroStateSet*)state)->getMacroStates()).size() == 0) {
-			return new MacroStateSet();
-		} else {
-			const MacroTransMTBDD & transPost = GetMTBDDForPost(aut, state, level, prefix);
-			int projecting = getProjectionVariable(level, prefix);
-			//MacroUnionFunctor muf;
-			MacroPrunedUnionFunctor muf(level);
-			MacroStateDeterminizatorFunctor msdf;
-
-			MacroTransMTBDD projectedMtbdd = (msdf(transPost)).Project(
-					[&transPost, projecting](size_t var) { return var < projecting;}, muf);
-#ifdef DEBUG_BDDS
-			std::cout << "BDD: \n";
-			std::cout << MacroTransMTBDD::DumpToDot({&projectedMtbdd}) << "\n\n";
-#endif
-
-			MacroStateSet *postStates = projectedMtbdd.GetValue(constructUniversalTrack());
-
-			return postStates;
-		}
-	}
+// 	if(level == 0) {
+// 		return GetZeroPost(aut, state, level, prefix);
+// 	} else {
+// 		if(level == 1 && (((MacroStateSet*)state)->getMacroStates()).size() == 0) {
+// 			return new MacroStateSet();
+// 		} else {
+// 			const MacroTransMTBDD & transPost = GetMTBDDForPost(aut, state, level, prefix);
+// 			int projecting = getProjectionVariable(level, prefix);
+// 			//MacroUnionFunctor muf;
+// 			MacroPrunedUnionFunctor muf(level);
+// 			MacroStateDeterminizatorFunctor msdf;
+//
+// 			MacroTransMTBDD projectedMtbdd = (msdf(transPost)).Project(
+// 					[&transPost, projecting](size_t var) { return var < projecting;}, muf);
+// #ifdef DEBUG_BDDS
+// 			std::cout << "BDD: \n";
+// 			std::cout << MacroTransMTBDD::DumpToDot({&projectedMtbdd}) << "\n\n";
+// #endif
+//
+// 			MacroStateSet *postStates = projectedMtbdd.GetValue(constructUniversalTrack());
+//
+// 			return postStates;
+// 		}
+// 	}
+	assert(false);
 }
 
 /**
@@ -518,70 +520,71 @@ int getProjectionVariable(unsigned level, PrefixListType & prefix) {
  * @return MTBDD representing the post of the state @p state
  */
 MacroTransMTBDD GetMTBDDForPost(Automaton & aut, TStateSet* state, unsigned level, PrefixListType & prefix) {
-	// Convert MTBDD from VATA to MacroStateRepresentation
-	if (level == 0) {
-		// Is Leaf State set
-		LeafStateSet* lState = reinterpret_cast<LeafStateSet*>(state);
-		StateType stateValue = lState->state;
-		TransMTBDD *stateTransition = getMTBDDForStateTuple(aut, Automaton::StateTuple({stateValue}));
-
-		int projecting = getProjectionVariable(level, prefix);
-		StateDeterminizatorFunctor sdf;
-		if (projecting > 0) {
-			AdditionApplyFunctor adder;
-			TransMTBDD projected = stateTransition->Project(
-				[stateTransition, projecting](size_t var) {return var < projecting;}, adder);
-			return sdf(projected);
-		} else {
-		// Convert to TStateSet representation
-			return sdf(*stateTransition);
-		}
-	} else {
-		MacroStateSet* mState = reinterpret_cast<MacroStateSet*>(state);
-
-		// Look into cache
-#ifdef USE_BDDCACHE
-		if(BDDCache.inCache(mState, level)) {
-			return BDDCache.lookUp(mState, level);
-		}
-#endif
-
-		StateSetList states = mState->getMacroStates();
-		// get post for all states under lower level
-
-		TStateSet* front;
-		MacroStateDeterminizatorFunctor msdf;
-		MacroPrunedUnionFunctor muf(level);
-		//MacroUnionFunctor muf;
-		MacroTransMTBDD detResultMtbdd(new MacroStateSet());
-
-		// get first and determinize it
-		//const MacroTransMTBDD & frontPost = GetMTBDDForPost(aut, front, level-1, prefix);
-		int projecting = getProjectionVariable(level-1, prefix);
-
-		/*MacroTransMTBDD detResultMtbdd = (level == 1) ? frontPost : (msdf(frontPost)).Project(
-				[&frontPost, projecting](size_t var) {return var < projecting;}, muf);*/
-		// do the union of posts represented as mtbdd
-
-		while(!states.empty()) {
-			front = states.back();
-			states.pop_back();
-			if(front->isEmpty()) {
-				continue;
-			}
-			const MacroTransMTBDD & nextPost = GetMTBDDForPost(aut, front, level-1, prefix);
-			detResultMtbdd = muf(detResultMtbdd, (level == 1) ? nextPost : (msdf(nextPost)).Project(
-					[&nextPost, projecting](size_t var) {return var < projecting;}, muf));
-		}
-
-		// cache the results
-#ifdef USE_BDDCACHE
-		BDDCache.storeIn(mState, detResultMtbdd, level);
-#endif
-
-		// do projection and return;
-		return detResultMtbdd;
-	}
+// 	// Convert MTBDD from VATA to MacroStateRepresentation
+// 	if (level == 0) {
+// 		// Is Leaf State set
+// 		LeafStateSet* lState = reinterpret_cast<LeafStateSet*>(state);
+// 		StateType stateValue = lState->state;
+// 		TransMTBDD *stateTransition = getMTBDDForStateTuple(aut, Automaton::StateTuple({stateValue}));
+//
+// 		int projecting = getProjectionVariable(level, prefix);
+// 		StateDeterminizatorFunctor sdf;
+// 		if (projecting > 0) {
+// 			AdditionApplyFunctor adder;
+// 			TransMTBDD projected = stateTransition->Project(
+// 				[stateTransition, projecting](size_t var) {return var < projecting;}, adder);
+// 			return sdf(projected);
+// 		} else {
+// 		// Convert to TStateSet representation
+// 			return sdf(*stateTransition);
+// 		}
+// 	} else {
+// 		MacroStateSet* mState = reinterpret_cast<MacroStateSet*>(state);
+//
+// 		// Look into cache
+// #ifdef USE_BDDCACHE
+// 		if(BDDCache.inCache(mState, level)) {
+// 			return BDDCache.lookUp(mState, level);
+// 		}
+// #endif
+//
+// 		StateSetList states = mState->getMacroStates();
+// 		// get post for all states under lower level
+//
+// 		TStateSet* front;
+// 		MacroStateDeterminizatorFunctor msdf;
+// 		MacroPrunedUnionFunctor muf(level);
+// 		//MacroUnionFunctor muf;
+// 		MacroTransMTBDD detResultMtbdd(new MacroStateSet());
+//
+// 		// get first and determinize it
+// 		//const MacroTransMTBDD & frontPost = GetMTBDDForPost(aut, front, level-1, prefix);
+// 		int projecting = getProjectionVariable(level-1, prefix);
+//
+// 		/*MacroTransMTBDD detResultMtbdd = (level == 1) ? frontPost : (msdf(frontPost)).Project(
+// 				[&frontPost, projecting](size_t var) {return var < projecting;}, muf);*/
+// 		// do the union of posts represented as mtbdd
+//
+// 		while(!states.empty()) {
+// 			front = states.back();
+// 			states.pop_back();
+// 			if(front->isEmpty()) {
+// 				continue;
+// 			}
+// 			const MacroTransMTBDD & nextPost = GetMTBDDForPost(aut, front, level-1, prefix);
+// 			detResultMtbdd = muf(detResultMtbdd, (level == 1) ? nextPost : (msdf(nextPost)).Project(
+// 					[&nextPost, projecting](size_t var) {return var < projecting;}, muf));
+// 		}
+//
+// 		// cache the results
+// #ifdef USE_BDDCACHE
+// 		BDDCache.storeIn(mState, detResultMtbdd, level);
+// #endif
+//
+// 		// do projection and return;
+// 		return detResultMtbdd;
+// 	}
+	assert(false);
 }
 
 /**

@@ -295,4 +295,75 @@ public:
 	}
 };
 
+/**
+ * MacroStateDeterminizatorFunctor creates MacroStates out of leaf states
+ */
+GCC_DIAG_OFF(effc++)
+class MacroStateDeterminizatorFunctorNew : public VATA::MTBDDPkg::Apply1Functor<MacroStateDeterminizatorFunctorNew, StateType, StateType> {
+GCC_DIAG_ON(effc++)
+public:
+	// < Public Methods >
+	/**
+	 * @param lhs: operand - macro-state state of level i
+	 * @return: macro state of level i+1
+	 */
+	inline StateType ApplyOperation(StateType lhs) {
+		return NewStateSet::GetUniqueSetHandle(SetOfStates({lhs}));
+	}
+};
+
+/**
+ * MacroUnionFunctor does the union of two automata, during the union states inside
+ * are pruned according to the defined simulation relation to yield smaller leaves
+ * in process
+ */
+GCC_DIAG_OFF(effc++)
+class MacroPrunedUnionFunctorNew : public VATA::MTBDDPkg::Apply2Functor<MacroPrunedUnionFunctorNew, StateType, StateType, StateType> {
+GCC_DIAG_ON(effc++)
+private:
+
+public:
+	unsigned int level;
+
+	// < Public Constructors>
+	MacroPrunedUnionFunctorNew(unsigned int l) : level(l) {}
+
+	// < Public Methods >
+	/**
+	 * @param lhs: left operand
+	 * @param rhs: right operand
+	 * @return union of leaf operands
+	 */
+	inline StateType ApplyOperation(StateType lhs, StateType rhs) {
+		const SetOfStates& lhsStates = NewStateSet::GetSetForHandle(lhs);
+		const SetOfStates& rhsStates = NewStateSet::GetSetForHandle(rhs);
+		SetOfStates unionStates;
+
+		return NewStateSet::GetUniqueSetHandle(unionStates);
+	}
+};
+
+/**
+ * StateDeterminizator makes out of leafs macro-states
+ */
+GCC_DIAG_OFF(effc++)
+class StateDeterminizatorFunctorNew : public VATA::MTBDDPkg::Apply1Functor<StateDeterminizatorFunctorNew, MTBDDLeafStateSet, StateType> {
+GCC_DIAG_ON(effc++)
+public:
+	// < Public Methods >
+	/**
+	 * @param lhs: operand of determinization
+	 * @return determinized macro-state
+	 */
+	inline StateType ApplyOperation(const MTBDDLeafStateSet & lhs) {
+		SetOfStates states;
+
+		for (auto state : lhs) {
+			states.insert(state);
+		}
+
+		return NewStateSet::GetUniqueSetHandle(states);
+	}
+};
+
 #endif

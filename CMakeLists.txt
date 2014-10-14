@@ -44,6 +44,7 @@ add_executable(dWiNA
 	src/app/DecisionProcedure/backward_decision_procedure.cpp
 	src/app/DecisionProcedure/containers/VarToTrackMap.cpp
 	src/app/DecisionProcedure/containers/StateSet.cpp
+	src/app/DecisionProcedure/containers/NewStateSet.cc
 )
 
 link_directories(${CMAKE_SOURCE_DIR}/src/libs/)
@@ -56,6 +57,7 @@ target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/src/libs/libvata.a)
 if (UNIX)
 	message(STATUS "Setting G++ flags")
 	set(CMAKE_CXX_FLAGS "${CMAKE_C++_FLAGS} -m32 -std=c++0x -DHAVE_CONFIG_H -I. -I.. -I../include -O2 -g -O3")
+	# set(CMAKE_CXX_FLAGS "${CMAKE_C++_FLAGS} -m32 -std=c++0x -DHAVE_CONFIG_H -I. -I.. -I../include -g")
 else()
 	message(fatal_error "Not supported yet")
 endif()

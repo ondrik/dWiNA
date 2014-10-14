@@ -31,6 +31,7 @@
 #include "mtbdd/ondriks_mtbdd.hh"
 #include "containers/VarToTrackMap.hh"
 #include "containers/StateSet.hh"
+#include "containers/NewStateSet.hh"
 #include "containers/Cache.hh"
 #include "automata.hh"
 #include "mtbdd_factors.hh"
@@ -56,6 +57,7 @@ using StateTuple = std::vector<StateType>;
 using MTBDDLeafStateSet = VATA::Util::OrdVector<StateType>;
 using TransMTBDD = VATA::MTBDDPkg::OndriksMTBDD<MTBDDLeafStateSet>;
 using MacroTransMTBDD = VATA::MTBDDPkg::OndriksMTBDD<MacroStateSet*>;
+using MacroTransMTBDDNew = VATA::MTBDDPkg::OndriksMTBDD<StateType>;
 typedef StateHT BaseFinalStatesType;
 typedef MacroStateSet* FinalStateType;
 typedef StateHT StateSetType;
@@ -72,16 +74,16 @@ TransMTBDD* getMTBDDForStateTuple(Automaton & aut, const StateTuple & states);
 void getInitialStatesOfAutomaton(Automaton & aut, MTBDDLeafStateSet &);
 MacroStateSet* constructInitialState(Automaton &  aut, unsigned numberOfDeterminizations);
 bool StateIsFinal(Automaton & aut, TStateSet* state, unsigned level, PrefixListType & prefix);
-MacroStateSet* GetZeroPost(Automaton & aut, TStateSet*& state, unsigned level, PrefixListType & prefix);
-MacroStateSet* GetZeroMacroPost(Automaton & aut, TStateSet*& state, unsigned level, PrefixListType & prefix);
+StateType GetZeroPost(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix);
+StateType GetZeroMacroPost(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix);
 int getProjectionVariable(unsigned level, PrefixListType & prefix);
-MacroTransMTBDD GetMTBDDForPost(Automaton & aut, TStateSet* state, unsigned level, PrefixListType & prefix);
-bool isNotEnqueued(StateSetList & queue, TStateSet*& state, unsigned level);
+MacroTransMTBDD GetMTBDDForPost(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix);
+bool isNotEnqueued(StateSetList & queue, StateType state, unsigned level);
 
 // < Backward decision procedure functions >
 int decideWS1S_backwards(Automaton &aut, PrefixListType formulaPrefixSet, PrefixListType negFormulaPrefixSet, bool formulaIsGround, bool topmostIsNegation);
 bool testValidity(Automaton &aut, PrefixListType prefix, bool topmostIsNegation);
-MacroStateSet* computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int detNo);
-bool initialStateIsInFinalStates(MacroStateSet *initial, MacroStateSet *finalStates, unsigned int level);
+StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int detNo);
+bool initialStateIsInFinalStates(StateType initial, StateType finalStates, unsigned int level);
 
 #endif
