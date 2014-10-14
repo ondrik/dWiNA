@@ -313,6 +313,7 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 //				}
 //			}
 //#else
+
 			if (std::find(processed.cbegin(), processed.cend(), state) == processed.end())
 			{
 #ifdef DEBUG_BDP
@@ -403,56 +404,61 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
  * @param[in] finalStates: set of final states
  * @return: True if initial is in finalStates
  */
-bool initialStateIsInFinalStates(StateType initial, StateType finalStates, unsigned int level) {
-	std::cerr << "The result is completely WRONG!!\n";
-	return false;
-	// // This probably will be more problematic than we think
-	// if(level == 1) {
-	// 	// TODO: This may need some optimizations
-	// 	for(auto state : ((MacroStateSet *) finalStates)->getMacroStates()) {
-	// 		bool isCovered = false;
-	// 		for(auto istate : ((MacroStateSet *) initial)->getMacroStates()) {
-	// 			for(auto lstate : ((MacroStateSet *) state)->getMacroStates()) {
-	// 				if(istate->DoCompare(lstate)) {
-	// 					isCovered = true;
-	// 					break;
-	// 				}
-	// 			}
-	// 			if(isCovered) {
-	// 				break;
-	// 			}
-	// 		}
-	// 		if(!isCovered) {
-	// 			std::cout << "return false, something not covered;\n";
-	// 			return false;
-	// 		}
-	// 	}
-	// 	std::cout << "return true;\n";
-	// 	return true;
-	// } else {
-	// 	// is singleton, so we get the first
-	// 	MacroStateSet* newInitialStateSet = (MacroStateSet*) (initial->getMacroStates())[0];
-	// 	if(level % 2 == 0) {
-	// 		// Downward closed
-	// 		StateSetList members = finalStates->getMacroStates();
-	// 		for(auto state : members) {
-	// 			if(initialStateIsInFinalStates(newInitialStateSet, (MacroStateSet*) state, level - 1)) {
-	// 				return true;
-	// 			}
-	// 		}
-	// 		return false;
-	// 	// level % 2 == 1
-	// 	} else {
-	// 		// Upward closed
-	// 		StateSetList members = finalStates->getMacroStates();
-	// 		for (auto state : members) {
-	// 			if(!initialStateIsInFinalStates(newInitialStateSet, (MacroStateSet*) state, level - 1)) {
-	// 				return false;
-	// 			}
-	// 		}
-	// 		return true;
-	// 	}
-	// }
+bool initialStateIsInFinalStates(StateType initial, StateType finalStates, unsigned int level)
+{
+	assert(level >= 1);
+
+	// This probably will be more problematic than we think
+	//
+	if (level == 1)
+	{
+		// TODO: This may need some optimizations
+		for (StateType finState : NewStateSet::GetSetForHandle(finalStates))
+		{	// we need to cover every 'finState'
+			bool isCovered = false;
+			for (StateType istate : NewStateSet::GetSetForHandle(initial))
+			{	// check if istate is in 'finState'
+				const SetOfStates& finStateSet = NewStateSet::GetSetForHandle(finState);
+				if (std::find(finStateSet.cbegin(), finStateSet.cend(), istate) != finStateSet.cend())
+				{	// in case we found 'istate' in 'finStateSet'
+					isCovered = true;
+					break;
+				}
+			}
+			if(!isCovered) {
+				std::cout << "return false, something not covered;\n";
+				return false;
+			}
+		}
+		std::cout << "return true;\n";
+		return true;
+	}
+	else
+	{ // is singleton, so we get the first
+		const SetOfStates& lowerInitialStateSet = NewStateSet::GetSetForHandle(initial);
+		assert(lowerInitialStateSet.size() == 1);
+		StateType newInitialStateSet = *lowerInitialStateSet.cbegin();
+		if (level % 2 == 0) {
+			// Downward closed
+			const SetOfStates& members = NewStateSet::GetSetForHandle(finalStates);
+			for(auto state : members) {
+				if(initialStateIsInFinalStates(newInitialStateSet, state, level - 1)) {
+					return true;
+				}
+			}
+			return false;
+		// level % 2 == 1
+		} else {
+			// Upward closed
+			const SetOfStates& members = NewStateSet::GetSetForHandle(finalStates);
+			for (auto state : members) {
+				if(!initialStateIsInFinalStates(newInitialStateSet, state, level - 1)) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
 }
 
 /**
