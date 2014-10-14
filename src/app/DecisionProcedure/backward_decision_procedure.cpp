@@ -404,7 +404,8 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
  * @return: True if initial is in finalStates
  */
 bool initialStateIsInFinalStates(StateType initial, StateType finalStates, unsigned int level) {
-	assert(false);
+	std::cerr << "The result is completely WRONG!!\n";
+	return false;
 	// // This probably will be more problematic than we think
 	// if(level == 1) {
 	// 	// TODO: This may need some optimizations
