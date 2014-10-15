@@ -185,7 +185,6 @@ StateType GetZeroMacroPostNew(Automaton & aut, StateType state, unsigned level, 
 			return postStates;
 		}
 	}
-	assert(false);
 }
 
 /**
@@ -220,8 +219,6 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 
 		for (auto state : matrixInitialStates)
 		{
-			// LeafStateSet *newLeaf = new LeafStateSet(state);
-			// leafQueue.set(newLeaf->state+1);
 			worklist.push_back(state);
 			states.insert(state);
 		}
@@ -486,11 +483,11 @@ bool testValidity(Automaton &aut, PrefixListType prefix, bool topmostIsNegation)
 	StateType finalStates = NewStateSet::GetUniqueSetHandle(states);
 	// std::cout << "[*] Size of the searched space: " << finalStates->measureStateSpace() << "\n";
 
-// #ifdef DEBUG_BDP
-// 	std::cout << "[testValidity] Dumping computed final states:\n";
-// 	finalStates->closed_dump(determinizationNumber);
-// 	std::cout << "\n";
-// #endif
+#ifdef DEBUG_BDP
+	std::cout << "[testvalidity] dumping computed final states:\n";
+	NewStateSet::DumpHandle(std::cerr, finalStates, determinizationNumber+1);
+	std::cout << "\n";
+#endif
 
 	// if initial state is in final states then validity holds
 	bool result;
