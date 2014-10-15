@@ -10,6 +10,7 @@
 
 #include "NewStateSet.hh"
 
+#include <algorithm>
 #include <boost/functional/hash.hpp>
 
 namespace std
@@ -80,4 +81,49 @@ void NewStateSet::DumpSetOfStates(
 		NewStateSet::DumpHandle(os, *it, levelOfElements);
 	}
 	os << "}";
+}
+
+
+bool NewStateSet::IsSubsumedBy(
+	StateType      lhs,
+	StateType      rhs,
+	size_t         level)
+{
+	const SetOfStates& lhsSet = NewStateSet::GetSetForHandle(lhs);
+	const SetOfStates& rhsSet = NewStateSet::GetSetForHandle(rhs);
+
+	return std::includes(
+		rhsSet.cbegin(), rhsSet.cend(),
+		lhsSet.cbegin(), lhsSet.cend());
+}
+
+
+bool NewStateSet::AddStateToSet(
+	SetOfStates&    stateSet,
+	StateType       newState,
+	size_t          level)
+{
+	std::cerr << "[AddStateToSet] level = " << level << "\n";
+	auto it = stateSet.begin();
+	while (it != stateSet.end())
+	{
+		StateType state = *it;
+		if (NewStateSet::IsSubsumedBy(newState, state, level))
+		{	// if 'newState' adds nothing new
+			return false;
+		}
+		else if (NewStateSet::IsSubsumedBy(state, newState, level))
+		{	// if 'newState' is bigger than 'state', we remove 'state'
+			auto newIt = it;
+			++it;
+			stateSet.erase(newIt);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	stateSet.insert(newState);
+	return true;
 }

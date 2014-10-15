@@ -207,7 +207,6 @@ StateType GetZeroMacroPostNew(Automaton & aut, StateType state, unsigned level, 
  */
 StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int detNo) {
 	NewStateSetList worklist;
-	NewStateSetList processed;
 	SetOfStates states;
 
 #ifdef DEBUG_BDP
@@ -246,10 +245,10 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 #endif
 
 	unsigned int i = 0;
-	while(!worklist.empty()) {
+	while (!worklist.empty())
+	{
 		StateType q = worklist.back();
 		worklist.pop_back();
-		processed.push_back(q);
 
 #ifdef DEBUG_BDP
 		std::cout << "[computeFinalStates] Dumping actual working state, iteration " << i++ << "\n";
@@ -314,7 +313,7 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 //			}
 //#else
 
-			if (std::find(processed.cbegin(), processed.cend(), state) == processed.end())
+			if (NewStateSet::AddStateToSet(states, state, detNo))
 			{
 #ifdef DEBUG_BDP
 				std::cerr << "[computeFinalStates] adding predecessor: ";
@@ -324,15 +323,7 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 				worklist.push_back(state);
 				states.insert(state);
 			}
-
-			// if(isNotEnqueued(processed, state, detNo)) {
-			// 	worklist.push_back(state);
-			// 	states.push_back(state);
-			// }
-			// std::cout << "\n";
-// #endif
 		}
-
 	}
 
 // #ifdef PRUNE_BY_SUBSUMPTION
