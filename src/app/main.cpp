@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #define _LANGUAGE_C_PLUS_PLUS
-//#define DEBUG_DP
+#define DEBUG_DP
 //#define DEBUG_BDDS
 
 // < System Headers >
@@ -75,7 +75,7 @@ MultiLevelMCache<MacroTransMTBDD> BDDCache;
 
 extern int yyparse(void);
 extern void loadFile(char *filename);
-extern Deque<FileSource *> source; 
+extern Deque<FileSource *> source;
 
 char *inputFileName = NULL;
 
@@ -127,7 +127,7 @@ bool ParseArguments(int argc, char *argv[])
 
   default:
     for (int i = 1; i < argc - 1; i++) {
-      
+
       if (argv[i][0] != '-')
 	return false;
 
@@ -170,8 +170,8 @@ bool ParseArguments(int argc, char *argv[])
 		  }
       }
     }
-  } 
-  
+  }
+
   inputFileName = argv[argc-1];
   return true;
 }
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
   initTimer();
   Timer timer_total, timer_formula, timer_automaton, timer_deciding;
   timer_total.start();
-  
+
   ///////// PARSING ////////////////////////////////////////////////////////
   Timer timer_parsing;
   timer_parsing.start();
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
     cout << "\n\n[*] Created symbol table:";
   	symbolTable.dump();
   	cout << "\n";
-    
+
     // Dump ASTs for predicates and macros
     PredLibEntry *pred = predicateLib.first();
     while (pred != NULL) {
@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
 	cout << "\n[*] Dumping Macro '";
       else
 	cout << "\n[*] Dumping Predicate '";
-      cout << symbolTable.lookupSymbol(pred->name) 
+      cout << symbolTable.lookupSymbol(pred->name)
 	   << "':\n";
       (pred->ast)->dump();
       cout << "\n";
@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
     timer_formula.print();
 	  cout << "\n";
   }
-  
+
   ///////// Conversion to Tree Automata ////////
 
   // Table or BDD tracks are reordered
@@ -403,12 +403,6 @@ int main(int argc, char *argv[])
   (ast->formula)->freeVars(&freeVars, &bound);
 
   bool formulaIsGround = freeVars.empty();
-  freeVars.dump();
-  std::cout << "\n";
-  bound.dump();
-  std::cout << "\n";
-  formulaIsGround = true;
-  // TODO: FOR NOW
 
   // First formula in AST representation is split into matrix and prefix part.
   ASTForm *matrix, *prefix;

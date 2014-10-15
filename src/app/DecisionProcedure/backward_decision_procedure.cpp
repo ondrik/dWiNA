@@ -14,7 +14,7 @@
 #include "decision_procedures.hh"
 #include "containers/NewStateSet.hh"
 
-#define DEBUG_BDP
+//#define DEBUG_BDP
 #define PRUNE_BY_SUBSUMPTION
 
 // Global Variables
