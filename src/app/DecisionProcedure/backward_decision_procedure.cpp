@@ -14,17 +14,13 @@
 #include "decision_procedures.hh"
 #include "containers/NewStateSet.hh"
 
-// #define DEBUG_BDP
-//#define DEBUG_PREFIX
-#define PRUNE_BY_SUBSUMPTION
+// #define DEBUG_BDP           // most verbose
+// #define DEBUG_REMOVE_ALL    // most quiet
+// #define DEBUG_PREFIX
 
-// #define DEBUG_REMOVE_ALL
+// this option fastens the computation, but takes up some memory
+#define USE_BDD_CACHE
 
-// Global Variables
-
-#ifdef USE_BDDCACHE
-extern MultiLevelMCache<MacroTransMTBDDNew> BDDCache;
-#endif
 
 /**
  * Constructs new initial state for the final automaton, according to the
@@ -98,6 +94,19 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 // 		std::cerr << "[GetMTBDDForPostNew] level = " << level << "\n";
 // #endif
 
+#ifdef USE_BDD_CACHE
+	// static cache
+	using BDDCache = std::unordered_map<StateType, MacroTransMTBDDNew>;
+	static BDDCache stateCache;
+
+	auto it = stateCache.find(state);
+	if (it != stateCache.end())
+	{
+		// std::cerr << "[GetMTBDDForPostNew]<level0> cache hit: " << state << "\n";
+		return it->second;
+	}
+#endif
+
 	// Convert MTBDD from VATA to MacroStateRepresentation
 	if (level == 0)
 	{	// 'state' is a real state
@@ -114,10 +123,17 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 		TransMTBDD projected = stateTransition->Project(
 			[projecting](size_t var) {return var < projecting;}, adder);
 
-		// TODO: cache the result?
 		StateDeterminizatorFunctorNew sdf;
+		MacroTransMTBDDNew result = sdf(projected);
 
-		return sdf(projected);
+#ifdef USE_BDD_CACHE
+		if (!stateCache.insert(std::make_pair(state, result)).second)
+		{	// save state to cache
+			assert(false);
+		}
+#endif
+
+		return result;
 	}
 	else
 	{
@@ -166,6 +182,13 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 
 		MacroStateDeterminizatorFunctorNew msdf;
 		resMtbdd = msdf(resMtbdd);
+
+#ifdef USE_BDD_CACHE
+		if (!stateCache.insert(std::make_pair(state, resMtbdd)).second)
+		{	// save state to cache
+			assert(false);
+		}
+#endif
 
 		return resMtbdd;
 	}
