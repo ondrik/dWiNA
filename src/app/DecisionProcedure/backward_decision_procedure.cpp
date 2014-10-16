@@ -14,9 +14,11 @@
 #include "decision_procedures.hh"
 #include "containers/NewStateSet.hh"
 
-#define DEBUG_BDP
+//#define DEBUG_BDP
 //#define DEBUG_PREFIX
 #define PRUNE_BY_SUBSUMPTION
+
+// #define DEBUG_REMOVE_ALL
 
 // Global Variables
 
@@ -342,7 +344,7 @@ StateType computeFinalStates(
 	NewStateSetList worklist;
 	SetOfStates states;
 
-#ifdef DEBUG_BDP
+#ifndef DEBUG_REMOVE_ALL
 	std::cerr << "Runing [computeFinalStates] for determinization level: " << detNo << "\n";;
 #endif
 
@@ -361,7 +363,7 @@ StateType computeFinalStates(
 	else
 	{
 		StateType finalStatesBelow = computeFinalStates(aut, prefix, detNo-1);
-#ifdef DEBUG_BDP
+#ifndef DEBUG_REMOVE_ALL
 		std::cout << "[computeFinalStates] Dumping final states from level " << detNo - 1 << "\n";
 		NewStateSet::DumpHandle(std::cerr, finalStatesBelow, detNo);
 		std::cout << "\n";
@@ -397,54 +399,6 @@ StateType computeFinalStates(
 
 		for(auto state : NewStateSet::GetSetForHandle(predecessors))
 		{
-//#ifdef PRUNE_BY_SUBSUMPTION
-//			if (detNo == 0) {
-//				unsigned int pos = state->state+1;
-//				if(!leafQueue.test(pos)) {
-//					worklist.push_back(state);
-//					states.push_back(state);
-//					leafQueue.set(pos, true);
-//				}
-//			// pruning upward closed things
-//			} else if(detNo % 2 == 0) {
-//				auto matching_iter = std::find_if(processed.begin(), processed.end(),
-//						[state, detNo](TStateSet* s) {
-//							return state->isSubsumed(s, detNo);
-//						});
-//				if(matching_iter == processed.end()) {
-//					worklist.push_back(state);
-//					states.push_back(state);
-//				} else {
-//// #ifdef DEBUG_BDP
-//// 					std::cout << "[isSubsumed] Pruning upward closed state\n";
-//// 					state->dump();
-//// 				    std::cout << "\n";
-//// #endif
-//				}
-//			// pruning downward closed things
-//			} else {
-//				auto matching_iter = std::find_if(processed.begin(), processed.end(),
-//						[state, detNo](TStateSet* s) {
-//							return s->isSubsumed(state, detNo);
-//						});
-//				if(matching_iter == processed.end()) {
-//					worklist.push_back(state);
-//					states.push_back(state);
-//				} else {
-//// #ifdef DEBUG_BDP
-////
-//// 					std::cout << "[isSubsumed] Pruning downward closed state\n";
-//// 					//state->dump();
-//// 					MacroStateSet* z = new MacroStateSet(states);
-//// 					//std::cout << "\n";
-//// 					//z->dump();
-//// 					//delete state;
-//// 				    //std::cout << "\n";
-//// #endif
-//				}
-//			}
-//#else
-
 			if (NewStateSet::AddStateToSet(states, state, detNo))
 			{
 #ifdef DEBUG_BDP
@@ -458,50 +412,7 @@ StateType computeFinalStates(
 		}
 	}
 
-// #ifdef PRUNE_BY_SUBSUMPTION
-// 	StateSetList pruned;
-// 	MacroStateSet* z;
-// 	if(detNo == 0) {
-// 		z = new MacroStateSet(states);
-// 	} else {
-// 		//std::cout << "States no = " << states.size() << "\n";
-// 		if(detNo % 2 == 0) {
-// 			while(!states.empty()) {
-// 				TStateSet* front = states.back();
-// 				states.pop_back();
-// 				auto matching_iter = std::find_if(states.begin(), states.end(),
-// 						[front, detNo](TStateSet* s) {
-// 							return s->isSubsumed(front, detNo);
-// 						});
-// 				if(matching_iter == states.end()) {
-// 					pruned.push_back(front);
-// 					//std::cout << "Fuck you dimwit\n";
-// 				} else {
-// 					//std::cout << "[isSubsumed] Pruning state at last\n";
-// 				}
-// 			}
-// 		} else {
-// 			while(!states.empty()) {
-// 				TStateSet* front = states.back();
-// 				states.pop_back();
-// 				auto matching_iter = std::find_if(states.begin(), states.end(),
-// 						[front, detNo](TStateSet* s) {
-// 							return front->isSubsumed(s, detNo);
-// 						});
-// 				if(matching_iter == states.end()) {
-// 					pruned.push_back(front);
-// 					//std::cout << "Fuck you dimwit\n";
-// 				} else {
-// 					//std::cout << "[isSubsumed] Pruning state at last\n";
-// 				}
-// 			}
-// 		}
-// 		z = new MacroStateSet(pruned);
-// 	}
-//
-// #else
 	StateType z = NewStateSet::GetUniqueSetHandle(states);
-// #endif
 
 #ifdef DEBUG_BDP
 	std::cout << "[computeFinalStates] Returning Z:";

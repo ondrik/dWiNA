@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <boost/functional/hash.hpp>
 
-// #define SUBSUMPTION
+#define SUBSUMPTION
 
 namespace std
 {
@@ -121,7 +121,7 @@ bool NewStateSet::AddStateToSet(
 	StateType       newState,
 	size_t          level)
 {
-	std::cerr << "[AddStateToSet] level = " << level << "\n";
+	// std::cerr << "[AddStateToSet] level = " << level << "\n";
 	auto it = stateSet.begin();
 	while (it != stateSet.end())
 	{
