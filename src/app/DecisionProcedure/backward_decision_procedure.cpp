@@ -15,6 +15,7 @@
 #include "containers/NewStateSet.hh"
 
 #define DEBUG_BDP
+//#define DEBUG_PREFIX
 #define PRUNE_BY_SUBSUMPTION
 
 // Global Variables
