@@ -14,7 +14,7 @@
 #include "decision_procedures.hh"
 #include "containers/NewStateSet.hh"
 
-//#define DEBUG_BDP
+#define DEBUG_BDP
 #define PRUNE_BY_SUBSUMPTION
 
 // Global Variables
@@ -31,7 +31,10 @@ extern MultiLevelMCache<MacroTransMTBDDNew> BDDCache;
  * @param numberOfDeterminizations: how many levels we will need
  * @return initial state of the final automaton
  */
-StateType constructInitialStateNew(Automaton & aut, unsigned numberOfDeterminizations) {
+StateType constructInitialStateNew(
+	const Automaton&       aut,
+	unsigned               numberOfDeterminizations)
+{
 	// Getting initial states
 	SetOfStates states;
 	for (auto state : aut.GetFinalStates()) {
@@ -87,10 +90,10 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 	unsigned                  level,
 	const PrefixListType&     prefix)
 {
-#ifdef DEBUG_BDP
-		std::cerr << "[GetMTBDDForPostNew] state = " << state << "\n";
-		std::cerr << "[GetMTBDDForPostNew] level = " << level << "\n";
-#endif
+// #ifdef DEBUG_BDP
+// 		std::cerr << "[GetMTBDDForPostNew] state = " << state << "\n";
+// 		std::cerr << "[GetMTBDDForPostNew] level = " << level << "\n";
+// #endif
 	// TODO: THIS SHOULD BE LOOKED UPON
 
 	// Convert MTBDD from VATA to MacroStateRepresentation
@@ -101,9 +104,9 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 		size_t projecting = getProjectionVariableNew(prefix, level);
 		assert(projecting > 0);
 
-#ifdef DEBUG_BDP
-		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
-#endif
+// #ifdef DEBUG_BDP
+// 		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
+// #endif
 
 		AdditionApplyFunctor adder;
 		TransMTBDD projected = stateTransition->Project(
@@ -121,17 +124,17 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 		MacroPrunedUnionFunctorNew muf(level-1);
 
 		size_t projecting = getProjectionVariableNew(prefix, level-1);
-#ifdef DEBUG_BDP
-		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
-#endif
+// #ifdef DEBUG_BDP
+// 		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
+// #endif
 
 		// no constant reference because the hash table may rellocate!
 		SetOfStates states = NewStateSet::GetSetForHandle(state);
-#ifdef DEBUG_BDP
-		std::cerr << "[GetMTBDDForPostNew] processing set: ";
-		NewStateSet::DumpSetOfStates(std::cerr, states, level);
-		std::cerr << "\n";
-#endif
+// #ifdef DEBUG_BDP
+// 		std::cerr << "[GetMTBDDForPostNew] processing set: ";
+// 		NewStateSet::DumpSetOfStates(std::cerr, states, level);
+// 		std::cerr << "\n";
+// #endif
 
 		// for (StateType itState : states)
 		// {
@@ -351,7 +354,11 @@ StateType GetZeroMacroPostNew(
  * @param[in] detNo: number of determizations needed
  * @return: MacroState representing all final states
  */
-StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int detNo) {
+StateType computeFinalStates(
+	const Automaton&           aut,
+	const PrefixListType&      prefix,
+	unsigned int               detNo)
+{
 	NewStateSetList worklist;
 	SetOfStates states;
 
@@ -604,22 +611,19 @@ bool initialStateIsInFinalStates(StateType initial, StateType finalStates, unsig
  * @param[in] aut: base automaton
  * @param[in] prefix: list of second-order variables for projection
  */
-bool testValidity(Automaton &aut, PrefixListType prefix, bool topmostIsNegation) {
+bool testValidity(
+	const Automaton&           aut,
+	const PrefixListType&      prefix,
+	bool                       topmostIsNegation)
+{
 	unsigned int determinizationNumber = prefix.size();
 #ifdef DEBUG_BDP
-	for(auto it = prefix.begin(); it != prefix.end(); ++it) {
-		std::cout << "[";
-		for(auto itt = (*it).begin(); itt != (*it).end(); ++itt) {
-			std::cout << (*itt) << ", ";
-		}
-		std::cout << "] ";
-	}
-	std::cout << "\n";
+	std::cout << "[testValidity] prefix: " << prefixToString(prefix) << "\n";
 #endif
 
 	StateType initialState = constructInitialStateNew(aut, determinizationNumber);
 #ifdef DEBUG_BDP
-	std::cout << "[testValidity] Dumping initial state:\n";
+	std::cout << "[testValidity] Dumping initial state: ";
 	NewStateSet::DumpHandle(std::cerr, initialState, determinizationNumber);
 	std::cout << "\n";
 #endif

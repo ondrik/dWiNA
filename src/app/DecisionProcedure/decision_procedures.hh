@@ -82,8 +82,8 @@ bool isNotEnqueued(StateSetList & queue, StateType state, unsigned level);
 
 // < Backward decision procedure functions >
 int decideWS1S_backwards(Automaton &aut, PrefixListType formulaPrefixSet, PrefixListType negFormulaPrefixSet, bool formulaIsGround, bool topmostIsNegation);
-bool testValidity(Automaton &aut, PrefixListType prefix, bool topmostIsNegation);
-StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int detNo);
+bool testValidity(const Automaton& aut, const PrefixListType& prefix, bool topmostIsNegation);
+// StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int detNo);
 bool initialStateIsInFinalStates(StateType initial, StateType finalStates, unsigned int level);
 
 #endif
