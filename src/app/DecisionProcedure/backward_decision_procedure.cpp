@@ -438,7 +438,7 @@ StateType computeFinalStates(
 	StateType z = NewStateSet::GetUniqueSetHandle(states);
 
 #ifndef DEBUG_REMOVE_ALL
-	std::cout << "[computeFinalStates] Returning final states:";
+	std::cout << "[computeFinalStates] Returning final states from level " << detNo << ":\n";
 	NewStateSet::DumpHandle(std::cerr, z, detNo+1);
 	std::cout << "\n";
 #endif
