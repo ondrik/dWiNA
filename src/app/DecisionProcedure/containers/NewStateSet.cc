@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <boost/functional/hash.hpp>
 
+// #define SUBSUMPTION
+
 namespace std
 {
 	template <>
@@ -53,23 +55,26 @@ const SetOfStates& NewStateSet::GetSetForHandle(StateType handle)
 void NewStateSet::DumpHandle(
 	std::ostream& os,
 	StateType state,
-	size_t levelOfElements)
+	size_t level)
 {
-	if (0 == levelOfElements)
+	if (0 == level)
 	{
 		os << state;
 	}
 	else
 	{
-		NewStateSet::DumpSetOfStates(os, NewStateSet::GetSetForHandle(state), levelOfElements-1);
+		os << state << "=";
+		NewStateSet::DumpSetOfStates(os, NewStateSet::GetSetForHandle(state), level);
 	}
 }
 
 void NewStateSet::DumpSetOfStates(
-	std::ostream& os,
-	const SetOfStates& states,
-	size_t levelOfElements)
+	std::ostream&          os,
+	const SetOfStates&     states,
+	size_t                 level)
 {
+	assert(level > 0);
+
 	os << "{";
 	for (auto it = states.cbegin(); it != states.cend(); ++it)
 	{
@@ -78,7 +83,7 @@ void NewStateSet::DumpSetOfStates(
 			os << ", ";
 		}
 
-		NewStateSet::DumpHandle(os, *it, levelOfElements);
+		NewStateSet::DumpHandle(os, *it, level-1);
 	}
 	os << "}";
 }
@@ -89,12 +94,25 @@ bool NewStateSet::IsSubsumedBy(
 	StateType      rhs,
 	size_t         level)
 {
+#ifdef SUBSUMPTION
 	const SetOfStates& lhsSet = NewStateSet::GetSetForHandle(lhs);
 	const SetOfStates& rhsSet = NewStateSet::GetSetForHandle(rhs);
 
-	return std::includes(
-		rhsSet.cbegin(), rhsSet.cend(),
-		lhsSet.cbegin(), lhsSet.cend());
+	if (level % 2 == 0)
+	{
+		return std::includes(
+			rhsSet.cbegin(), rhsSet.cend(),
+			lhsSet.cbegin(), lhsSet.cend());
+	}
+	else
+	{
+		return std::includes(
+			lhsSet.cbegin(), lhsSet.cend(),
+			rhsSet.cbegin(), rhsSet.cend());
+	}
+#else
+	return lhs == rhs;
+#endif
 }
 
 

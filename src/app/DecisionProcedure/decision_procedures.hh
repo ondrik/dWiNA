@@ -70,13 +70,13 @@ bool existsUnsatisfyingExample(Automaton & aut, MacroStateSet* initialState, Pre
 PrefixListType convertPrefixFormulaToList(ASTForm* formula);
 void closePrefix(PrefixListType & prefix, IdentList* freeVars, bool negationIsTopmonst);
 BaseFinalStatesType getBaseFinalStates(Automaton & aut);
-TransMTBDD* getMTBDDForStateTuple(Automaton & aut, const StateTuple & states);
-void getInitialStatesOfAutomaton(Automaton & aut, MTBDDLeafStateSet &);
+const TransMTBDD* getMTBDDForStateTuple(const Automaton& aut, const StateTuple& states);
+void getInitialStatesOfAutomaton(const Automaton& aut, MTBDDLeafStateSet &);
 MacroStateSet* constructInitialState(Automaton &  aut, unsigned numberOfDeterminizations);
 bool StateIsFinal(Automaton & aut, TStateSet* state, unsigned level, PrefixListType & prefix);
 StateType GetZeroPost(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix);
 StateType GetZeroMacroPost(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix);
-int getProjectionVariable(unsigned level, PrefixListType & prefix);
+int getProjectionVariable(unsigned level, const PrefixListType& prefix);
 MacroTransMTBDD GetMTBDDForPost(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix);
 bool isNotEnqueued(StateSetList & queue, StateType state, unsigned level);
 

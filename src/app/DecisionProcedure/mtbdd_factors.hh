@@ -337,7 +337,8 @@ public:
 	inline StateType ApplyOperation(StateType lhs, StateType rhs) {
 		const SetOfStates& lhsStates = NewStateSet::GetSetForHandle(lhs);
 		const SetOfStates& rhsStates = NewStateSet::GetSetForHandle(rhs);
-		SetOfStates unionStates;
+		SetOfStates unionStates = lhsStates;
+		unionStates.insert(rhsStates.cbegin(), rhsStates.cend());
 
 		return NewStateSet::GetUniqueSetHandle(unionStates);
 	}
@@ -355,12 +356,18 @@ public:
 	 * @param lhs: operand of determinization
 	 * @return determinized macro-state
 	 */
-	inline StateType ApplyOperation(const MTBDDLeafStateSet & lhs) {
+	inline StateType ApplyOperation(const MTBDDLeafStateSet & lhs)
+	{
 		SetOfStates states;
 
-		for (auto state : lhs) {
+		for (auto state : lhs)
+		{
 			states.insert(state);
 		}
+
+		// std::cerr << "[StateDeterminizatorFunctorNew] determinized state:\n";
+		// NewStateSet::DumpSetOfStates(std::cerr, states, 0);
+		// std::cerr << "\n";
 
 		return NewStateSet::GetUniqueSetHandle(states);
 	}

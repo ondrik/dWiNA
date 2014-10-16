@@ -50,6 +50,27 @@ StateType constructInitialStateNew(Automaton & aut, unsigned numberOfDeterminiza
 	return ithState;
 }
 
+/// returns the last variable to remain after projection (all lower should be removed)
+size_t getProjectionVariableNew(
+	const PrefixListType&     prefix,
+	size_t                    level)
+{
+	assert(level < prefix.size());
+
+	const VariableSet& varSet = prefix[level];
+	assert(!varSet.empty());
+	size_t maxVarIndex = varSet[0];
+	for (size_t var : varSet)
+	{
+		if (var > maxVarIndex)
+		{
+			maxVarIndex = var;
+		}
+	}
+
+	return maxVarIndex + 1;
+}
+
 /**
  * Generates post of @p state, by constructing posts of lesser level and
  * doing the union of these states with projection over the prefix
@@ -60,69 +81,118 @@ StateType constructInitialStateNew(Automaton & aut, unsigned numberOfDeterminiza
  * @param prefix: list of variables for projection
  * @return MTBDD representing the post of the state @p state
  */
-MacroTransMTBDDNew GetMTBDDForPostNew(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix) {
+MacroTransMTBDDNew GetMTBDDForPostNew(
+	const Automaton&          aut,
+	StateType                 state,
+	unsigned                  level,
+	const PrefixListType&     prefix)
+{
+#ifdef DEBUG_BDP
+		std::cerr << "[GetMTBDDForPostNew] state = " << state << "\n";
+		std::cerr << "[GetMTBDDForPostNew] level = " << level << "\n";
+#endif
+	// TODO: THIS SHOULD BE LOOKED UPON
+
 	// Convert MTBDD from VATA to MacroStateRepresentation
 	if (level == 0)
-	{
-		// Is Leaf State set
-		TransMTBDD *stateTransition = getMTBDDForStateTuple(aut, Automaton::StateTuple({state}));
+	{	// 'state' is a real state
+		const TransMTBDD* stateTransition = getMTBDDForStateTuple(aut, Automaton::StateTuple({state}));
 
-		size_t projecting = getProjectionVariable(level, prefix);
+		size_t projecting = getProjectionVariableNew(prefix, level);
+		assert(projecting > 0);
+
+#ifdef DEBUG_BDP
+		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
+#endif
+
+		AdditionApplyFunctor adder;
+		TransMTBDD projected = stateTransition->Project(
+			[projecting](size_t var) {return var < projecting;}, adder);
+
+		// TODO: cache the result?
 		StateDeterminizatorFunctorNew sdf;
-		if (projecting > 0) {
-			AdditionApplyFunctor adder;
-			TransMTBDD projected = stateTransition->Project(
-				[stateTransition, projecting](size_t var) {return var < projecting;}, adder);
-			return sdf(projected);
-		} else {
-		// Convert to TStateSet representation
-			return sdf(*stateTransition);
-		}
+
+		return sdf(projected);
 	}
 	else
 	{
-		// Look into cache
-#ifdef USE_BDDCACHE
-		if(BDDCache.inCache(state, level)) {
-			return BDDCache.lookUp(state, level);
-		}
-#endif
-
-		const SetOfStates& states = NewStateSet::GetSetForHandle(state);
-		// get post for all states under lower level
-
-		MacroStateDeterminizatorFunctorNew msdf;
-		MacroPrunedUnionFunctorNew muf(level);
-		//MacroUnionFunctor muf;
 		MacroTransMTBDDNew detResultMtbdd(NewStateSet::GetUniqueSetHandle(SetOfStates()));
 
-		// get first and determinize it
-		//const MacroTransMTBDD & frontPost = GetMTBDDForPost(aut, front, level-1, prefix);
-		size_t projecting = getProjectionVariable(level-1, prefix);
+		MacroPrunedUnionFunctorNew muf(level-1);
 
-		/*MacroTransMTBDD detResultMtbdd = (level == 1) ? frontPost : (msdf(frontPost)).Project(
-				[&frontPost, projecting](size_t var) {return var < projecting;}, muf);*/
-		// do the union of posts represented as mtbdd
+		size_t projecting = getProjectionVariableNew(prefix, level-1);
+#ifdef DEBUG_BDP
+		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
+#endif
+
+		// no constant reference because the hash table may rellocate!
+		SetOfStates states = NewStateSet::GetSetForHandle(state);
+#ifdef DEBUG_BDP
+		std::cerr << "[GetMTBDDForPostNew] processing set: ";
+		NewStateSet::DumpSetOfStates(std::cerr, states, level);
+		std::cerr << "\n";
+#endif
+
+		// for (StateType itState : states)
+		// {
+		// 	std::cerr << "state = " << itState << ", ";
+		// }
 
 		for (StateType itState : states)
 		{
-			if ((level > 1) && NewStateSet::GetSetForHandle(itState).empty()) {
-				continue;
-			}
-			MacroTransMTBDDNew nextPost = GetMTBDDForPostNew(aut, itState, level-1, prefix);
-			detResultMtbdd = muf(detResultMtbdd, (level == 1) ? nextPost : (msdf(nextPost)).Project(
-					[&nextPost, projecting](size_t var) {return var < projecting;}, muf));
+			MacroTransMTBDDNew nextPost = GetMTBDDForPostNew(aut, itState, level - 1, prefix);
+			MacroTransMTBDDNew projected = nextPost.Project(
+				[projecting](size_t var) {return var < projecting;}, muf);
+			detResultMtbdd = muf(detResultMtbdd, projected);
 		}
 
-		// cache the results
-#ifdef USE_BDDCACHE
-		BDDCache.storeIn(mState, detResultMtbdd, level);
-#endif
+		MacroStateDeterminizatorFunctorNew msdf;
+		detResultMtbdd = msdf(detResultMtbdd);
 
-		// do projection and return;
 		return detResultMtbdd;
 	}
-	assert(false);
+// 	else
+// 	{
+// 		// TODO: should we treat level 1 in a different way?
+// 		// Look into cache
+// #ifdef USE_BDDCACHE
+// 		if(BDDCache.inCache(state, level)) {
+// 			return BDDCache.lookUp(state, level);
+// 		}
+// #endif
+//
+// 		const SetOfStates& states = NewStateSet::GetSetForHandle(state);
+// 		// get post for all states under lower level
+//
+// 		MacroStateDeterminizatorFunctorNew msdf;
+// 		MacroPrunedUnionFunctorNew muf(level-1);
+// 		//MacroUnionFunctor muf;
+// 		MacroTransMTBDDNew detResultMtbdd(NewStateSet::GetUniqueSetHandle(SetOfStates()));
+//
+// 		// get first and determinize it
+// 		//const MacroTransMTBDD & frontPost = GetMTBDDForPost(aut, front, level-1, prefix);
+// 		size_t projecting = getProjectionVariableNew(prefix, level-1);
+//
+// 		for (StateType itState : states)
+// 		{
+// 			if ((level > 1) && NewStateSet::GetSetForHandle(itState).empty())
+// 			{
+// 				continue;
+// 			}
+//
+// 			MacroTransMTBDDNew nextPost = GetMTBDDForPostNew(aut, itState, level-1, prefix);
+// 			detResultMtbdd = muf(detResultMtbdd, (level == 1) ? nextPost : (msdf(nextPost)).Project(
+// 					[&nextPost, projecting](size_t var) {return var < projecting;}, muf));
+// 		}
+//
+// 		// cache the results
+// #ifdef USE_BDDCACHE
+// 		BDDCache.storeIn(mState, detResultMtbdd, level);
+// #endif
+//
+// 		// do projection and return;
+// 		return detResultMtbdd;
+// 	}
 }
 
 /**
@@ -136,12 +206,54 @@ MacroTransMTBDDNew GetMTBDDForPostNew(Automaton & aut, StateType state, unsigned
  * @param prefix: list of variables for projection
  * @return: zero post of initial @p state
  */
-StateType GetZeroPostNew(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix) {
-	MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
-	StateType postStates = transPost.GetValue(constructUniversalTrack());
-
-	return postStates;
+StateType GetZeroPostNew(
+	const Automaton&             aut,
+	StateType                    state,
+	unsigned                     level,
+	const PrefixListType&        prefix)
+{
+	assert(false);
+	// MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
+	// StateType postStates = transPost.GetValue(constructUniversalTrack());
+  //
+	// return postStates;
 }
+
+std::string prefixToString(const PrefixListType& prefix)
+{
+	std::ostringstream os;
+
+	for (const VariableSet& varSet : prefix)
+	{
+		os << "[";
+		for (auto it = varSet.begin(); it != varSet.end(); ++it)
+		{
+			if (it != varSet.begin())
+			{
+				os << ", ";
+			}
+			os << *it;
+		}
+		os << "]";
+	}
+
+	return os.str();
+}
+
+Automaton::SymbolType constructZeroTrack(
+	const PrefixListType&     prefix,
+	size_t                    level)
+{
+	size_t projVar = getProjectionVariableNew(prefix, level);
+
+#ifdef DEBUG_BDP
+	std::cerr << "[constructZeroTrack] projection variable  = " << projVar << "\n";
+#endif
+
+	Automaton::SymbolType zeroTrack(projVar, 0);
+	return zeroTrack;
+}
+
 
 /**
  * Constructs a post through zero tracks for backwards procedure which is
@@ -153,38 +265,73 @@ StateType GetZeroPostNew(Automaton & aut, StateType state, unsigned level, Prefi
  * @param prefix: list of variables for projection
  * @return zero post of initial @p state
  */
-StateType GetZeroMacroPostNew(Automaton & aut, StateType state, unsigned level, PrefixListType & prefix)
+StateType GetZeroMacroPostNew(
+	const Automaton&          aut,
+	StateType                 state,
+	unsigned                  level,
+	const PrefixListType&     prefix)
 {
-	if(level == 0)
+#ifdef DEBUG_BDP
+	std::cerr << "[GetZeroMacroPostNew] state = ";
+	NewStateSet::DumpHandle(std::cerr, state, level);
+	std::cerr << "\n";
+	std::cerr << "[GetZeroMacroPostNew] level = " << level << "\n";
+	std::cerr << "[GetZeroMacroPostNew] prefix = ";
+	std::cerr << prefixToString(prefix);
+	std::cerr << "\n";
+#endif
+
+	if (level == 0)
 	{
-		return GetZeroPostNew(aut, state, level, prefix);
+		MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
+		StateType postStates = transPost.GetValue(constructZeroTrack(prefix, level));
+
+#ifdef DEBUG_BDP
+		std::cerr << "[GetZeroMacroPostNew] postStates = ";
+		NewStateSet::DumpHandle(std::cerr, postStates, level+1);
+		std::cerr << "\n";
+#endif
+
+		return postStates;
 	}
 	else
 	{
-		if(NewStateSet::GetSetForHandle(state).size() == 0)
-		{
-			return NewStateSet::GetUniqueSetHandle(SetOfStates());
-		}
-		else
-		{
-			MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
-			size_t projecting = getProjectionVariable(level, prefix);
-			//MacroUnionFunctor muf;
-			MacroPrunedUnionFunctorNew muf(level);
-			MacroStateDeterminizatorFunctorNew msdf;
+		MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
+		StateType postStates = transPost.GetValue(constructZeroTrack(prefix, level));
 
-			MacroTransMTBDDNew projectedMtbdd = (msdf(transPost)).Project(
-					[projecting](size_t var) { return var < projecting;}, muf);
-#ifdef DEBUG_BDDS
-			std::cout << "BDD: \n";
-			std::cout << MacroTransMTBDDNew::DumpToDot({&projectedMtbdd}) << "\n\n";
+#ifdef DEBUG_BDP
+		std::cerr << "[GetZeroMacroPostNew] postStates = ";
+		NewStateSet::DumpHandle(std::cerr, postStates, level+1);
+		std::cerr << "\n";
 #endif
 
-			StateType postStates = projectedMtbdd.GetValue(constructUniversalTrack());
-
-			return postStates;
-		}
+		return postStates;
 	}
+
+
+
+// 	else
+// 	{
+// 		if(NewStateSet::GetSetForHandle(state).size() == 0)
+// 		{
+// 			return NewStateSet::GetUniqueSetHandle(SetOfStates());
+// 		}
+// 		else
+// 		{
+// 			MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
+// 			size_t projecting = getProjectionVariable(level, prefix);
+// 			//MacroUnionFunctor muf;
+// 			MacroPrunedUnionFunctorNew muf(level-1);
+// 			MacroStateDeterminizatorFunctorNew msdf;
+//
+// 			MacroTransMTBDDNew projectedMtbdd = (msdf(transPost)).Project(
+// 					[projecting](size_t var) { return var < projecting;}, muf);
+//
+// 			StateType postStates = projectedMtbdd.GetValue(constructUniversalTrack());
+//
+// 			return postStates;
+// 		}
+// 	}
 }
 
 /**
@@ -212,7 +359,8 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 	std::cerr << "Runing [computeFinalStates] for determinization level: " << detNo << "\n";;
 #endif
 
-	if (detNo == 0) {
+	if (detNo == 0)
+	{
 		// Since we are working with pre, final states are actual initial
 		MTBDDLeafStateSet matrixInitialStates;
 		getInitialStatesOfAutomaton(aut, matrixInitialStates);
@@ -237,7 +385,7 @@ StateType computeFinalStates(Automaton &aut, PrefixListType prefix, unsigned int
 
 #ifdef DEBUG_BDP
 	std::cerr << "[computeFinalStates] Starting with states\n";
-	NewStateSet::DumpSetOfStates(std::cerr, states, detNo);
+	NewStateSet::DumpSetOfStates(std::cerr, states, detNo+1);
 	std::cerr << "\n";
 #endif
 

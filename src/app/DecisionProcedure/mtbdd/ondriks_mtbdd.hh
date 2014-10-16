@@ -517,7 +517,7 @@ public:   // public methods
 		{	// try to proceed according to the assignment
 			const VarType& var = GetVarFromInternal(node);
 
-			if (asgn.GetIthVariableValue(var) == SymbolicVarAsgn::ONE)
+			if ((var < asgn.length()) && (asgn.GetIthVariableValue(var) == SymbolicVarAsgn::ONE))
 			{	// if one
 				node = GetHighFromInternal(node);
 			}

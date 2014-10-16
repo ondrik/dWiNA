@@ -379,9 +379,9 @@ void closePrefix(PrefixListType & prefix, IdentList* freeVars, bool negationIsTo
  * @param states: states for which we want transition relation
  * @return: MTBDD corresponding to the relation
  */
-TransMTBDD* getMTBDDForStateTuple(Automaton & aut, const StateTuple & states) {
+const TransMTBDD* getMTBDDForStateTuple(const Automaton& aut, const StateTuple& states) {
 	uintptr_t bddAsInt = aut.GetTransMTBDDForTuple(states);
-	return reinterpret_cast<TransMTBDD*>(bddAsInt);
+	return reinterpret_cast<const TransMTBDD*>(bddAsInt);
 }
 
 /**
@@ -390,8 +390,8 @@ TransMTBDD* getMTBDDForStateTuple(Automaton & aut, const StateTuple & states) {
  * @param aut: automaton
  * @return: set of initial states
  */
-void getInitialStatesOfAutomaton(Automaton & aut, MTBDDLeafStateSet & initialStates) {
-	TransMTBDD* bdd = getMTBDDForStateTuple(aut, Automaton::StateTuple());
+void getInitialStatesOfAutomaton(const Automaton& aut, MTBDDLeafStateSet& initialStates) {
+	const TransMTBDD* bdd = getMTBDDForStateTuple(aut, Automaton::StateTuple());
 
 	StateCollectorFunctor scf(initialStates);
 	scf(*bdd);
@@ -500,7 +500,7 @@ MacroStateSet* GetZeroMacroPost(Automaton & aut, TStateSet*& state, unsigned lev
  * @param prefix: prefix of formula
  * @return: number of projected variable
  */
-int getProjectionVariable(unsigned level, PrefixListType & prefix) {
+int getProjectionVariable(unsigned level, const PrefixListType& prefix) {
 	int index = level;
 	if (prefix[index].size() == 0) {
 		return 0;
