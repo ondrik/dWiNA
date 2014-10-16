@@ -14,7 +14,7 @@
 #include "decision_procedures.hh"
 #include "containers/NewStateSet.hh"
 
-//#define DEBUG_BDP
+// #define DEBUG_BDP
 //#define DEBUG_PREFIX
 #define PRUNE_BY_SUBSUMPTION
 
@@ -400,7 +400,7 @@ StateType computeFinalStates(
 		for(auto state : NewStateSet::GetSetForHandle(predecessors))
 		{
 			if (NewStateSet::AddStateToSet(states, state, detNo))
-			{
+			{	// in the case the predecessor is new, push him into the workset
 #ifdef DEBUG_BDP
 				std::cerr << "[computeFinalStates] adding predecessor: ";
 				NewStateSet::DumpHandle(std::cerr, state, detNo);
@@ -512,11 +512,11 @@ bool testValidity(
 	std::cout << "[testValidity] prefix: " << prefixToString(prefix) << "\n";
 #endif
 
-#ifdef DEBUG_BDP
-	VATA::Serialization::TimbukSerializer serial;
-	std::cout << "[testValidity] automaton: " << aut.DumpToString(serial, "symbolic") << "\n";
-	std::cout << "[testValidity] automaton: " << aut.DumpToDot() << "\n";
-#endif
+// #ifdef DEBUG_BDP
+// 	VATA::Serialization::TimbukSerializer serial;
+// 	std::cout << "[testValidity] automaton: " << aut.DumpToString(serial, "symbolic") << "\n";
+// 	std::cout << "[testValidity] automaton: " << aut.DumpToDot() << "\n";
+// #endif
 
 	StateType initialState = constructInitialStateNew(aut, determinizationNumber);
 #ifdef DEBUG_BDP
