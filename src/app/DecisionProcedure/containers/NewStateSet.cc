@@ -96,6 +96,7 @@ bool NewStateSet::IsSubsumedBy(
 {
 	assert(level > 0);
 
+#ifdef USE_SUBSUMPTION
 	const SetOfStates& lhsSet = NewStateSet::GetSetForHandle(lhs);
 	const SetOfStates& rhsSet = NewStateSet::GetSetForHandle(rhs);
 
@@ -105,18 +106,57 @@ bool NewStateSet::IsSubsumedBy(
 	// NewStateSet::DumpSetOfStates(std::cerr, rhsSet, level);
 	// std::cerr << " on level " << level << "\n";
 
-#ifdef USE_SUBSUMPTION
-	if (level % 2 == 0)
+	if (lhs == rhs)
 	{
-		return std::includes(
-			rhsSet.cbegin(), rhsSet.cend(),
-			lhsSet.cbegin(), lhsSet.cend());
+		return true;
 	}
-	else
-	{
+
+	if (level == 1)
+	{	// for basic sets
 		return std::includes(
 			lhsSet.cbegin(), lhsSet.cend(),
 			rhsSet.cbegin(), rhsSet.cend());
+	}
+
+	if (level % 2 == 0)
+	{
+		for (StateType lhsState : lhsSet)
+		{
+			bool found;
+			for (StateType rhsState : rhsSet)
+			{
+				if (NewStateSet::IsSubsumedBy(lhsState, rhsState, level-1))
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	else
+	{
+		for (StateType rhsState : rhsSet)
+		{
+			bool found;
+			for (StateType lhsState : lhsSet)
+			{
+				if (NewStateSet::IsSubsumedBy(lhsState, rhsState, level-1))
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 #else
 	return lhs == rhs;
