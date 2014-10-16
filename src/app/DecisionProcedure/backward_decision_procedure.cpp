@@ -95,7 +95,6 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 // 		std::cerr << "[GetMTBDDForPostNew] state = " << state << "\n";
 // 		std::cerr << "[GetMTBDDForPostNew] level = " << level << "\n";
 // #endif
-	// TODO: THIS SHOULD BE LOOKED UPON
 
 	// Convert MTBDD from VATA to MacroStateRepresentation
 	if (level == 0)
@@ -105,9 +104,9 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 		size_t projecting = getProjectionVariableNew(prefix, level);
 		assert(projecting > 0);
 
-// #ifdef DEBUG_BDP
-// 		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
-// #endif
+#ifdef DEBUG_BDP
+		std::cerr << "[GetMTBDDForPostNew]<level0> projecting over var < " << projecting << "\n";
+#endif
 
 		AdditionApplyFunctor adder;
 		TransMTBDD projected = stateTransition->Project(
@@ -120,14 +119,7 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 	}
 	else
 	{
-		MacroTransMTBDDNew detResultMtbdd(NewStateSet::GetUniqueSetHandle(SetOfStates()));
-
-		MacroPrunedUnionFunctorNew muf(level-1);
-
-		size_t projecting = getProjectionVariableNew(prefix, level-1);
-// #ifdef DEBUG_BDP
-// 		std::cerr << "[GetMTBDDForPostNew] projecting over var = " << projecting << "\n";
-// #endif
+		size_t projecting = getProjectionVariableNew(prefix, level);
 
 		// no constant reference because the hash table may rellocate!
 		SetOfStates states = NewStateSet::GetSetForHandle(state);
@@ -137,90 +129,44 @@ MacroTransMTBDDNew GetMTBDDForPostNew(
 // 		std::cerr << "\n";
 // #endif
 
-		// for (StateType itState : states)
-		// {
-		// 	std::cerr << "state = " << itState << ", ";
-		// }
+		MacroTransMTBDDNew resMtbdd(NewStateSet::GetUniqueSetHandle(SetOfStates()));
+		MacroPrunedUnionFunctorNew muf(level);
 
 		for (StateType itState : states)
 		{
+#ifdef DEBUG_BDP
+			std::cerr << "[GetMTBDDForPostNew] processing nested state: ";
+			NewStateSet::DumpHandle(std::cerr, itState, level-1);
+			std::cerr << "\n";
+#endif
 			MacroTransMTBDDNew nextPost = GetMTBDDForPostNew(aut, itState, level - 1, prefix);
-			MacroTransMTBDDNew projected = nextPost.Project(
-				[projecting](size_t var) {return var < projecting;}, muf);
-			detResultMtbdd = muf(detResultMtbdd, projected);
+#ifdef DEBUG_BDP
+			std::cerr << "[GetMTBDDForPostNew] projection for state: ";
+			NewStateSet::DumpHandle(std::cerr, itState, level-1);
+			std::cerr << "\n";
+			std::cerr << "[GetMTBDDForPostNew]<level" << level
+				<< "> projecting over var < " << projecting << "\n";
+#endif
+			// MacroTransMTBDDNew projected = nextPost.Project(
+			// 	[projecting](size_t var) {return var < projecting;}, muf);
+#ifdef DEBUG_BDP
+			std::cerr << "[GetMTBDDForPostNew] union for state: ";
+			NewStateSet::DumpHandle(std::cerr, itState, level-1);
+			std::cerr << "\n";
+#endif
+			// resMtbdd = muf(resMtbdd, projected);
+			resMtbdd = muf(resMtbdd, nextPost);
 		}
 
+#ifdef DEBUG_BDP
+		std::cerr << "[GetMTBDDForPostNew] nested states processed\n";
+#endif
+
 		MacroStateDeterminizatorFunctorNew msdf;
-		detResultMtbdd = msdf(detResultMtbdd);
+		resMtbdd = msdf(resMtbdd);
 
-		return detResultMtbdd;
+		return resMtbdd;
 	}
-// 	else
-// 	{
-// 		// TODO: should we treat level 1 in a different way?
-// 		// Look into cache
-// #ifdef USE_BDDCACHE
-// 		if(BDDCache.inCache(state, level)) {
-// 			return BDDCache.lookUp(state, level);
-// 		}
-// #endif
-//
-// 		const SetOfStates& states = NewStateSet::GetSetForHandle(state);
-// 		// get post for all states under lower level
-//
-// 		MacroStateDeterminizatorFunctorNew msdf;
-// 		MacroPrunedUnionFunctorNew muf(level-1);
-// 		//MacroUnionFunctor muf;
-// 		MacroTransMTBDDNew detResultMtbdd(NewStateSet::GetUniqueSetHandle(SetOfStates()));
-//
-// 		// get first and determinize it
-// 		//const MacroTransMTBDD & frontPost = GetMTBDDForPost(aut, front, level-1, prefix);
-// 		size_t projecting = getProjectionVariableNew(prefix, level-1);
-//
-// 		for (StateType itState : states)
-// 		{
-// 			if ((level > 1) && NewStateSet::GetSetForHandle(itState).empty())
-// 			{
-// 				continue;
-// 			}
-//
-// 			MacroTransMTBDDNew nextPost = GetMTBDDForPostNew(aut, itState, level-1, prefix);
-// 			detResultMtbdd = muf(detResultMtbdd, (level == 1) ? nextPost : (msdf(nextPost)).Project(
-// 					[&nextPost, projecting](size_t var) {return var < projecting;}, muf));
-// 		}
-//
-// 		// cache the results
-// #ifdef USE_BDDCACHE
-// 		BDDCache.storeIn(mState, detResultMtbdd, level);
-// #endif
-//
-// 		// do projection and return;
-// 		return detResultMtbdd;
-// 	}
-}
-
-/**
- * Constructs a post through zero tracks from @p state of @p level with respect
- * to @p prefix. First computes the post of the macro-state and then proceeds
- * with getting the 0 tracks successors and collecting the reachable states
- *
- * @param aut: base automaton
- * @param state: initial state we are getting zero post for
- * @param level: level of macro inception
- * @param prefix: list of variables for projection
- * @return: zero post of initial @p state
- */
-StateType GetZeroPostNew(
-	const Automaton&             aut,
-	StateType                    state,
-	unsigned                     level,
-	const PrefixListType&        prefix)
-{
-	assert(false);
-	// MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
-	// StateType postStates = transPost.GetValue(constructUniversalTrack());
-  //
-	// return postStates;
 }
 
 std::string prefixToString(const PrefixListType& prefix)
@@ -248,13 +194,35 @@ Automaton::SymbolType constructZeroTrack(
 	const PrefixListType&     prefix,
 	size_t                    level)
 {
+	size_t maxVar = 0;
+	for (const VariableSet& varSet : prefix)
+	{
+		for (size_t var : varSet)
+		{
+			if (var > maxVar)
+			{
+				maxVar = var;
+			}
+		}
+	}
+
 	size_t projVar = getProjectionVariableNew(prefix, level);
 
 #ifdef DEBUG_BDP
 	std::cerr << "[constructZeroTrack] projection variable  = " << projVar << "\n";
 #endif
 
-	Automaton::SymbolType zeroTrack(projVar, 0);
+	Automaton::SymbolType zeroTrack(maxVar+1);
+
+	for (size_t i = projVar; i < maxVar+1; ++i)
+	{
+		zeroTrack.SetIthVariableValue(i, Automaton::SymbolType::ZERO);
+	}
+
+#ifdef DEBUG_BDP
+	std::cerr << "[constructZeroTrack] zeroTrack = " << zeroTrack.ToString() << "\n";
+#endif
+
 	return zeroTrack;
 }
 
@@ -301,7 +269,18 @@ StateType GetZeroMacroPostNew(
 	else
 	{
 		MacroTransMTBDDNew transPost = GetMTBDDForPostNew(aut, state, level, prefix);
-		StateType postStates = transPost.GetValue(constructZeroTrack(prefix, level));
+		MacroPrunedUnionFunctorNew muf(level+1);
+
+		size_t projecting = getProjectionVariableNew(prefix, level);
+
+		MacroTransMTBDDNew projectedMtbdd = transPost.Project(
+			[projecting](size_t var) { return var < projecting;}, muf);
+
+		Automaton::SymbolType zeroSymb = constructZeroTrack(prefix, level);
+#ifdef DEBUG_BDP
+		std::cerr << "[GetZeroMacroPostNew] zeroTrack = " << zeroSymb.ToString() << "\n";
+#endif
+		StateType postStates = projectedMtbdd.GetValue(zeroSymb);
 
 #ifdef DEBUG_BDP
 		std::cerr << "[GetZeroMacroPostNew] postStates = ";
@@ -622,6 +601,12 @@ bool testValidity(
 	std::cout << "[testValidity] prefix: " << prefixToString(prefix) << "\n";
 #endif
 
+#ifdef DEBUG_BDP
+	VATA::Serialization::TimbukSerializer serial;
+	std::cout << "[testValidity] automaton: " << aut.DumpToString(serial, "symbolic") << "\n";
+	std::cout << "[testValidity] automaton: " << aut.DumpToDot() << "\n";
+#endif
+
 	StateType initialState = constructInitialStateNew(aut, determinizationNumber);
 #ifdef DEBUG_BDP
 	std::cout << "[testValidity] Dumping initial state: ";
@@ -672,7 +657,13 @@ bool testValidity(
  *      can either be valid or unsatisfiable.
  * @return: Decision procedure results
  */
-int decideWS1S_backwards(Automaton &aut, PrefixListType formulaPrefixSet, PrefixListType negFormulaPrefixSet, bool formulaIsGround, bool topmostIsNegation) {
+int decideWS1S_backwards(
+	const Automaton&         aut,
+	const PrefixListType&    formulaPrefixSet,
+	const PrefixListType&    negFormulaPrefixSet,
+	bool                     formulaIsGround,
+	bool                     topmostIsNegation)
+{
 	if(options.dump) {
 		std::cout << "[*] Commencing backward decision procedure for WS1S\n";
 	}

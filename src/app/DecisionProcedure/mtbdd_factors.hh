@@ -340,6 +340,14 @@ public:
 		SetOfStates unionStates = lhsStates;
 		unionStates.insert(rhsStates.cbegin(), rhsStates.cend());
 
+		std::cerr << "[MacroPrunedUnionFunctorNew] getting predecessors ";
+		NewStateSet::DumpHandle(std::cerr, lhs, level);
+		std::cerr << " + ";
+		NewStateSet::DumpHandle(std::cerr, rhs, level);
+		std::cerr << " => ";
+		NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
+		std::cerr << "\n";
+
 		return NewStateSet::GetUniqueSetHandle(unionStates);
 	}
 };
