@@ -9,7 +9,7 @@ set(CMAKE_CXX_COMPILER "g++-4.8")
 include_directories(src)
 include_directories(src/app)
 include_directories(src/app/Frontend)
-include_directories(include)
+include_directories(libvata/include)
 
 add_executable(dWiNA
 	src/app/main.cpp
@@ -52,7 +52,8 @@ target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/src/libs/libmonabdd.so)
 target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/src/libs/libmonadfa.so)
 target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/src/libs/libmonagta.so)
 target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/src/libs/libmonamem.so)
-target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/src/libs/libvata.a)
+# target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/src/libs/libvata.a)
+target_link_libraries(dWiNA ${CMAKE_SOURCE_DIR}/libvata/build/src/libvata.a)
 
 if (UNIX)
 	message(STATUS "Setting G++ flags")
