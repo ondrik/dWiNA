@@ -386,11 +386,11 @@ StateType computeFinalStates(
 	else
 	{
 		StateType finalStatesBelow = computeFinalStates(aut, prefix, detNo-1);
-#ifndef DEBUG_REMOVE_ALL
-		std::cout << "[computeFinalStates] Dumping final states from level " << detNo - 1 << "\n";
-		NewStateSet::DumpHandle(std::cerr, finalStatesBelow, detNo);
-		std::cout << "\n";
-#endif
+// #ifndef DEBUG_REMOVE_ALL
+// 		std::cout << "[computeFinalStates] Dumping final states from level " << detNo - 1 << "\n";
+// 		NewStateSet::DumpHandle(std::cerr, finalStatesBelow, detNo);
+// 		std::cout << "\n";
+// #endif
 		worklist.push_back(finalStatesBelow);
 		states.insert(finalStatesBelow);
 	}
