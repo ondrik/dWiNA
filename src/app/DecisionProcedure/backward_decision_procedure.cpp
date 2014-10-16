@@ -420,9 +420,9 @@ StateType computeFinalStates(
 		std::cout << "\n";
 #endif
 
-		for(auto state : NewStateSet::GetSetForHandle(predecessors))
+		for (auto state : NewStateSet::GetSetForHandle(predecessors))
 		{
-			if (NewStateSet::AddStateToSet(states, state, detNo))
+			if (NewStateSet::AddStateToSet(states, state, detNo+1))
 			{	// in the case the predecessor is new, push him into the workset
 #ifdef DEBUG_BDP
 				std::cerr << "[computeFinalStates] adding predecessor: ";
@@ -437,11 +437,10 @@ StateType computeFinalStates(
 
 	StateType z = NewStateSet::GetUniqueSetHandle(states);
 
-#ifdef DEBUG_BDP
-	std::cout << "[computeFinalStates] Returning Z:";
+#ifndef DEBUG_REMOVE_ALL
+	std::cout << "[computeFinalStates] Returning final states:";
 	NewStateSet::DumpHandle(std::cerr, z, detNo+1);
 	std::cout << "\n";
-	std::cout << "[-----------------------------------------------------------------]\n";
 #endif
 
 	return z;

@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <boost/functional/hash.hpp>
 
-#define SUBSUMPTION
+#define USE_SUBSUMPTION
 
 namespace std
 {
@@ -94,10 +94,18 @@ bool NewStateSet::IsSubsumedBy(
 	StateType      rhs,
 	size_t         level)
 {
-#ifdef SUBSUMPTION
+	assert(level > 0);
+
 	const SetOfStates& lhsSet = NewStateSet::GetSetForHandle(lhs);
 	const SetOfStates& rhsSet = NewStateSet::GetSetForHandle(rhs);
 
+	// std::cerr << "[IsSubsumedBy] testing whether ";
+	// NewStateSet::DumpSetOfStates(std::cerr, lhsSet, level);
+	// std::cerr << " is subsumed by ";
+	// NewStateSet::DumpSetOfStates(std::cerr, rhsSet, level);
+	// std::cerr << " on level " << level << "\n";
+
+#ifdef USE_SUBSUMPTION
 	if (level % 2 == 0)
 	{
 		return std::includes(
@@ -121,16 +129,28 @@ bool NewStateSet::AddStateToSet(
 	StateType       newState,
 	size_t          level)
 {
+	assert(level > 0);
+
 	// std::cerr << "[AddStateToSet] level = " << level << "\n";
+	// std::cerr << "[AddStateToSet] set = ";
+	// NewStateSet::DumpSetOfStates(std::cerr, stateSet, level);
+	// std::cerr << "\n";
+	// std::cerr << "[AddStateToSet] newState = " << newState << "\n";
+
+	if (1 == level)
+	{
+		return stateSet.insert(newState).second;
+	}
+
 	auto it = stateSet.begin();
 	while (it != stateSet.end())
 	{
 		StateType state = *it;
-		if (NewStateSet::IsSubsumedBy(newState, state, level))
+		if (NewStateSet::IsSubsumedBy(newState, state, level-1))
 		{	// if 'newState' adds nothing new
 			return false;
 		}
-		else if (NewStateSet::IsSubsumedBy(state, newState, level))
+		else if (NewStateSet::IsSubsumedBy(state, newState, level-1))
 		{	// if 'newState' is bigger than 'state', we remove 'state'
 			auto newIt = it;
 			++it;
@@ -142,6 +162,10 @@ bool NewStateSet::AddStateToSet(
 		}
 	}
 
-	stateSet.insert(newState);
+	if (!stateSet.insert(newState).second)
+	{
+		assert(false);
+	}
+
 	return true;
 }

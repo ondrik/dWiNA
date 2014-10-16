@@ -334,11 +334,24 @@ public:
 	 * @param rhs: right operand
 	 * @return union of leaf operands
 	 */
-	inline StateType ApplyOperation(StateType lhs, StateType rhs) {
+	inline StateType ApplyOperation(StateType lhs, StateType rhs)
+	{
 		const SetOfStates& lhsStates = NewStateSet::GetSetForHandle(lhs);
 		const SetOfStates& rhsStates = NewStateSet::GetSetForHandle(rhs);
 		SetOfStates unionStates = lhsStates;
-		unionStates.insert(rhsStates.cbegin(), rhsStates.cend());
+
+		// unionStates.insert(rhsStates.cbegin(), rhsStates.cend());
+		for (StateType state : rhsStates)
+		{
+			// std::cerr << "[MacroPrunedUnionFunctorNew] calling AddStateToSet: add ";;
+			// NewStateSet::DumpHandle(std::cerr, state, level-1);
+			// std::cerr << " to ";
+			// NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
+			// std::cerr << ", level=" << level << "\n";
+
+			NewStateSet::AddStateToSet(unionStates, state, level);
+			// unionStates.insert(state);
+		}
 
 		// std::cerr << "[MacroPrunedUnionFunctorNew] getting predecessors ";
 		// NewStateSet::DumpHandle(std::cerr, lhs, level);
