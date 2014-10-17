@@ -14,7 +14,7 @@
 #include "decision_procedures.hh"
 #include "containers/NewStateSet.hh"
 
-#define DEBUG_BDP           // most verbose
+// #define DEBUG_BDP           // most verbose
 // #define DEBUG_REMOVE_ALL    // most quiet
 // #define DEBUG_PREFIX
 
@@ -106,7 +106,9 @@ SetOfStatesMTBDD GetMTBDDForPostNew(
 		auto it = groundStateCache.find(state);
 		if (it != groundStateCache.end())
 		{
+#ifdef DEBUG_BDP
 			std::cerr << "[GetMTBDDForPostNew]<level0> cache hit: " << state << "\n";
+#endif
 			return it->second;
 		}
 #endif
@@ -145,7 +147,9 @@ SetOfStatesMTBDD GetMTBDDForPostNew(
 		auto it = higherStateCache.find(state);
 		if (it != higherStateCache.end())
 		{
+#ifdef DEBUG_BDP
 			std::cerr << "[GetMTBDDForPostNew]<level" << level << "> cache hit: " << state << "\n";
+#endif
 			return it->second;
 		}
 #endif

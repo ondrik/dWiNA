@@ -309,9 +309,9 @@ public:
 	 */
 	inline StateType ApplyOperation(const SetOfStates& lhs)
 	{
-		std::cerr << "[MacroStateDeterminizatorFunctorNew] determinizing ";
-		NewStateSet::DumpSetOfStates(std::cerr, lhs, 1);
-		std::cerr << "\n";
+		// std::cerr << "[MacroStateDeterminizatorFunctorNew] determinizing ";
+		// NewStateSet::DumpSetOfStates(std::cerr, lhs, 1);
+		// std::cerr << "\n";
 		return NewStateSet::GetUniqueSetHandle(lhs);
 	}
 };
@@ -346,23 +346,23 @@ public:
 		// unionStates.insert(rhsStates.cbegin(), rhsStates.cend());
 		for (StateType state : rhs)
 		{
-			std::cerr << "[MacroPrunedUnionFunctorNew] calling AddStateToSet: add ";;
-			NewStateSet::DumpHandle(std::cerr, state, level-1);
-			std::cerr << " to ";
-			NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
-			std::cerr << ", level=" << level << "\n";
+			// std::cerr << "[MacroPrunedUnionFunctorNew] calling AddStateToSet: add ";;
+			// NewStateSet::DumpHandle(std::cerr, state, level-1);
+			// std::cerr << " to ";
+			// NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
+			// std::cerr << ", level=" << level << "\n";
 
 			NewStateSet::AddStateToSet(unionStates, state, level);
 			// unionStates.insert(state);
 		}
 
-		std::cerr << "[MacroPrunedUnionFunctorNew] getting predecessors ";
-		NewStateSet::DumpSetOfStates(std::cerr, lhs, level);
-		std::cerr << " + ";
-		NewStateSet::DumpSetOfStates(std::cerr, rhs, level);
-		std::cerr << " => ";
-		NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
-		std::cerr << "\n";
+		// std::cerr << "[MacroPrunedUnionFunctorNew] getting predecessors ";
+		// NewStateSet::DumpSetOfStates(std::cerr, lhs, level);
+		// std::cerr << " + ";
+		// NewStateSet::DumpSetOfStates(std::cerr, rhs, level);
+		// std::cerr << " => ";
+		// NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
+		// std::cerr << "\n";
 
 		return unionStates;
 	}
@@ -423,11 +423,11 @@ public:
 	{
 		SetOfStates unionStates = lhs;
 
-		std::cerr << "[MacroPrunedUnionFunctorAdder] adding: ";
-		NewStateSet::DumpHandle(std::cerr, rhs, level);
-		std::cerr << " to ";
-		NewStateSet::DumpSetOfStates(std::cerr, lhs, level+1);
-		std::cerr << "\n";
+		// std::cerr << "[MacroPrunedUnionFunctorAdder] adding: ";
+		// NewStateSet::DumpHandle(std::cerr, rhs, level);
+		// std::cerr << " to ";
+		// NewStateSet::DumpSetOfStates(std::cerr, lhs, level+1);
+		// std::cerr << "\n";
 
 		NewStateSet::AddStateToSet(unionStates, rhs, level);
 		return unionStates;
