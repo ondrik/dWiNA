@@ -53,7 +53,7 @@ ASTForm* ASTForm_Impl::toRestrictedSyntax() {
 ASTForm* ASTForm_Biimpl::toRestrictedSyntax() {
    f1 = f1->toRestrictedSyntax();
    f2 = f2->toRestrictedSyntax();
-   
+
    ASTForm* not_f1 = new ASTForm_Not(f1, pos);
    ASTForm* not_f2 = new ASTForm_Not(f2, pos);
    ASTForm* ff1 = f1->clone();
@@ -182,8 +182,8 @@ ASTForm* ASTForm_Not::toRestrictedSyntax() {
 }
 
 /* Transformations to Prenex Normal Form */
-//  1) childs are transformed to prenex normal form 
-//  2) While, there exists a child node with prenex 
+//  1) childs are transformed to prenex normal form
+//  2) While, there exists a child node with prenex
 
 /**
  * Transformation of formula to Prenex Normal Form.
@@ -206,7 +206,7 @@ ASTForm* ASTForm_Not::toRestrictedSyntax() {
  */
 bool hasQuantifier(ASTForm* child) {
    return (child->kind == aEx0) | (child->kind == aEx1) | (child->kind == aEx2) |
-          (child->kind == aAll0) | (child->kind == aAll1) | (child->kind == aAll2);  
+          (child->kind == aAll0) | (child->kind == aAll1) | (child->kind == aAll2);
 }
 
 /**
@@ -261,10 +261,10 @@ ASTForm* ASTForm_ff::toPrenexNormalForm() {
    bool leftHasQuantifier, rightHasQuantifier;
    f1 = f1->toPrenexNormalForm();
    f2 = f2->toPrenexNormalForm();
-   
+
    ASTForm* root, *current;
    root = 0;
-   current = 0;   
+   current = 0;
 
    do {
        leftHasQuantifier = hasQuantifier(f1);
@@ -284,7 +284,7 @@ ASTForm* ASTForm_ff::toPrenexNormalForm() {
               switchNodeWithQuantifier((ASTForm_uvf*)f2, current, this);
            root = (root == 0) ? current : root;
        }
-   } while (leftHasQuantifier | rightHasQuantifier); 
+   } while (leftHasQuantifier | rightHasQuantifier);
    return (root == 0) ? this : root;
 }
 
@@ -456,6 +456,36 @@ ASTForm* ASTForm_uvf::removeUniversalQuantifier() {
 }
 
 /**
+ * Transforms prefix into second order
+ *
+ * @return; formula with prefix in second order
+ */
+ASTForm* ASTForm_Not::prefixToSecondOrder() {
+	f = f->prefixToSecondOrder();
+	return this;
+}
+
+/**
+ * Transforms prefix into second order
+ *
+ * @return; formula with prefix in second order
+ */
+ASTForm* ASTForm_Ex2::prefixToSecondOrder() {
+	f = f->prefixToSecondOrder();
+	return this;
+}
+
+/**
+ * Transforms prefix into second order
+ *
+ * @return; formula with prefix in second order
+ */
+ASTForm* ASTForm_Ex1::prefixToSecondOrder() {
+	f = f->prefixToSecondOrder();
+	return new ASTForm_Ex2(this->ul, this->vl, this->f, pos);
+}
+
+/**
  * Unfolds negations to the atomic formulae and shift them to the atoms
  *
  * @return: Formula with negations in atomic formulae
@@ -516,7 +546,7 @@ ASTForm* ASTForm_vf::unfoldNegations() {
 ASTForm* ASTForm_uvf::unfoldNegations() {
     f = f->unfoldNegations();
     return this;
-} 
+}
 
 /**
  * Given AST tree for formula phi, it is first transformed to restricted syntax

@@ -32,15 +32,16 @@ public:
     statistics(false), printProgress(false),
     analysis(false), separateCompilation(false),
     dump(false), intermediate(false),
-    treemodeOutput(false), m2l(false), 
+    treemodeOutput(false), m2l(false),
     graphvizDFA(false), graphvizDAG(false),
-    graphvizSatisfyingEx(false), graphvizCounterEx(false), 
-    externalWhole(false), demo(false), 
-    inheritedAcceptance(false), unrestrict(false), 
+    graphvizSatisfyingEx(false), graphvizCounterEx(false),
+    externalWhole(false), demo(false),
+    inheritedAcceptance(false), unrestrict(false),
     alternativeM2LStr(false), reorder(HEURISTIC), optimize(0),
-    useMonaDFA(false) {}
+    useMonaDFA(false), noExpnf(false) {}
 
   bool useMonaDFA;
+	bool noExpnf;
   Method method;
 
   bool time;

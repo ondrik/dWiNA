@@ -53,7 +53,7 @@ public:
     var(t->var), fresh(t->fresh), code(t->code) {}
 
   Ident var; // the variable code is bound to
-  bool fresh; // true if var is fresh in code, i.e. needs to be projected away 
+  bool fresh; // true if var is fresh in code, i.e. needs to be projected away
   VarCode code;
 };
 
@@ -75,14 +75,14 @@ public:
 ////////// Abstract syntax tree ///////////////////////////////////////////////
 
 enum ASTKind {
-  aVar1, aDot1, aUp1, aInt, aPlus1, aMinus1, aPlusModulo1, aMinusModulo1, 
-  aPlus2, aMinus2, aMin, aMax, aInterval, aVar2, aEmpty, aUnion, aInter, 
-  aSetminus, aSet, aVar0, aTrue, aFalse, aIn, aNotin, aRoot, aEmptyPred, 
+  aVar1, aDot1, aUp1, aInt, aPlus1, aMinus1, aPlusModulo1, aMinusModulo1,
+  aPlus2, aMinus2, aMin, aMax, aInterval, aVar2, aEmpty, aUnion, aInter,
+  aSetminus, aSet, aVar0, aTrue, aFalse, aIn, aNotin, aRoot, aEmptyPred,
   aSub, aEqual1, aEqual2, aNotEqual1, aFirstOrder, aIdLeft, aPresbConst,
-  aNotEqual2, aLess, aLessEq, aImpl, aBiimpl, aAnd, aOr, aNot, aEx0, aEx1, 
-  aEx2, aAll0, aAll1, aAll2, aLet0, aLet1, aLet2, aCall, 
+  aNotEqual2, aLess, aLessEq, aImpl, aBiimpl, aAnd, aOr, aNot, aEx0, aEx1,
+  aEx2, aAll0, aAll1, aAll2, aLet0, aLet1, aLet2, aCall,
   aUniv, aImport, aExport, aPrefix, aDot2, aUp2, aRootPred, aInStateSpace1,
-  aInStateSpace2, aTreeRoot, aWellFormedTree, aTree, aTerm2Formula, 
+  aInStateSpace2, aTreeRoot, aWellFormedTree, aTree, aTerm2Formula,
   aSomeType, aRestrict
 };
 
@@ -103,7 +103,7 @@ public:
   ASTOrder order;
   ASTKind kind;
   Pos pos;
-}; 
+};
 
 class ASTList: public DequeGC<AST*> {
 public:
@@ -128,7 +128,7 @@ public:
   ASTTermCode *makeCode(SubstCode *subst = NULL) = 0;
   virtual ASTTerm1* unfoldMacro(IdentList*, ASTList*) { return this;}
   virtual ASTTerm1* clone() { return this; }
-  void dump() = 0; 
+  void dump() = 0;
 };
 
 class Term1List: public DequeGC<ASTTerm1*> {};
@@ -141,7 +141,7 @@ public:
   ASTTermCode *makeCode(SubstCode *subst = NULL) = 0;
   virtual ASTTerm2* unfoldMacro(IdentList*, ASTList*) { return this;}
   virtual ASTTerm2* clone() { return this; }
-  void dump() = 0; 
+  void dump() = 0;
 };
 
 class Term2List: public DequeGC<ASTTerm2*> {};
@@ -164,6 +164,7 @@ public:
   virtual ASTForm* unfoldNegations() { return this; }
   virtual ASTForm* flatten() { return this;}
   virtual ASTForm* unfoldMacro(IdentList* i, ASTList* a) { /*std::cerr << "\nMissing unfolding for this formula\n"; this->dump();*/ return this; }
+  virtual ASTForm* prefixToSecondOrder() { return this;}
 
   ASTForm* toExistentionalPNF();
   ASTForm* toSecondOrder();
@@ -201,7 +202,7 @@ public:
 };
 
 class ASTComponentList: public DequeGC<ASTComponent*> {
-public: 
+public:
   void dump();
 };
 
@@ -232,7 +233,7 @@ public:
     ASTTerm1(kind, p), n(c) {}
 
   int n;
-}; 
+};
 
 class ASTTerm1_T: public ASTTerm1 {
 public:
@@ -267,7 +268,7 @@ public:
 
   ASTTerm1 *t;
   int n;
-}; 
+};
 
 class ASTTerm1_tnt: public ASTTerm1 {
 public:
@@ -280,7 +281,7 @@ public:
   ASTTerm1 *t1;
   ASTTerm1 *t2;
   int n;
-}; 
+};
 
 class ASTTerm2_TT: public ASTTerm2 {
 public:
@@ -317,7 +318,7 @@ public:
   void freeVars(IdentList*, IdentList*);
   ASTForm* unfoldMacro(IdentList*, ASTList*);
 
-  ASTTerm1 *t1; 
+  ASTTerm1 *t1;
   ASTTerm2 *T2;
 };
 
@@ -326,7 +327,7 @@ public:
   ASTForm_T(ASTKind kind, ASTTerm2 *TT, Pos p) :
     ASTForm(kind, p), T(TT) {}
   ~ASTForm_T() {delete T;}
-    
+
   void freeVars(IdentList*, IdentList*);
   ASTForm *unfoldMacro(IdentList*, ASTList*);
 
@@ -362,7 +363,7 @@ public:
 class ASTForm_nt: public ASTForm {
 public:
   ASTForm_nt(ASTKind kind, int nn, ASTTerm1 *tt, Pos p) :
-    ASTForm(kind, p), n(nn), t(tt) {} 
+    ASTForm(kind, p), n(nn), t(tt) {}
   ~ASTForm_nt() {delete t;}
 
   void freeVars(IdentList*, IdentList*);
@@ -439,7 +440,7 @@ public:
 };
 class ASTForm_uvf: public ASTForm_q {
 public:
-  ASTForm_uvf(ASTKind kind, IdentList *ull, IdentList *vll, 
+  ASTForm_uvf(ASTKind kind, IdentList *ull, IdentList *vll,
 		  ASTForm *ff, Pos p) :
     ASTForm_q(kind, ff, p), ul(ull), vl(vll) {}
   ~ASTForm_uvf() {delete ul; delete vl;}
@@ -483,7 +484,7 @@ public:
 
 protected:
   BitList *bits;
-}; 
+};
 
 class ASTTerm1_Up: public ASTTerm1_t {
 public:
@@ -492,13 +493,13 @@ public:
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
-}; 
+};
 
 class ASTTerm1_Root: public ASTTerm1 {
 public:
   ASTTerm1_Root(Ident u, Pos p) :
     ASTTerm1(aRoot, p), univ(u) {}
-  
+
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
 
@@ -515,7 +516,7 @@ public:
   int value();
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
-}; 
+};
 
 class ASTTerm1_Plus: public ASTTerm1_tn {
 public:
@@ -524,7 +525,7 @@ public:
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
-}; 
+};
 
 class ASTTerm1_Minus: public ASTTerm1_tn {
 public:
@@ -534,7 +535,7 @@ public:
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   VarCode unfold(int v1, int v2, int n, SubstCode *subst, Pos pos);
   void dump();
-}; 
+};
 
 class ASTTerm1_PlusModulo: public ASTTerm1_tnt {
 public:
@@ -544,7 +545,7 @@ public:
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   VarCode unfold(int v1, int v2, int n, int v3, SubstCode *subst, Pos pos);
   void dump();
-}; 
+};
 
 class ASTTerm1_MinusModulo: public ASTTerm1_tnt {
 public:
@@ -554,7 +555,7 @@ public:
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   VarCode unfold(int v1, int v2, int n, int v3, SubstCode *subst, Pos pos);
   void dump();
-}; 
+};
 
 class ASTTerm1_Min: public ASTTerm1_T {
 public:
@@ -599,7 +600,7 @@ public:
   ASTTerm2* clone() { return new ASTTerm2_Var2(this->n, this->pos);}
 
   int n;
-}; 
+};
 
 class ASTTerm2_VarTree: public ASTTerm2 {
 public:
@@ -613,7 +614,7 @@ public:
 
 protected:
   int n;
-}; 
+};
 
 class ASTTerm2_Dot: public ASTTerm2 {
 public:
@@ -628,7 +629,7 @@ public:
 protected:
   BitList *bits;
   ASTTerm2 *T;
-}; 
+};
 
 class ASTTerm2_Up: public ASTTerm2 {
 public:
@@ -642,7 +643,7 @@ public:
 
 protected:
   ASTTerm2 *T;
-}; 
+};
 
 class ASTTerm2_Empty: public ASTTerm2 {
 public:
@@ -651,13 +652,13 @@ public:
 
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
-}; 
+};
 
 class ASTTerm2_Union: public ASTTerm2_TT {
 public:
   ASTTerm2_Union(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
     ASTTerm2_TT(aUnion, T1, T2, p) {}
-  
+
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
 };
@@ -666,7 +667,7 @@ class ASTTerm2_Inter: public ASTTerm2_TT {
 public:
   ASTTerm2_Inter(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
     ASTTerm2_TT(aInter, T1, T2, p) {}
-  
+
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
 };
@@ -675,7 +676,7 @@ class ASTTerm2_Setminus: public ASTTerm2_TT {
 public:
   ASTTerm2_Setminus(ASTTerm2 *T1, ASTTerm2 *T2, Pos p) :
     ASTTerm2_TT(aSetminus, T1, T2, p) {}
-  
+
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   void dump();
 };
@@ -702,7 +703,7 @@ public:
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   VarCode unfold(int v1, int v2, int n, SubstCode *subst, Pos pos);
   void dump();
-}; 
+};
 
 class ASTTerm2_Minus: public ASTTerm2_Tn {
 public:
@@ -712,12 +713,12 @@ public:
   ASTTermCode *makeCode(SubstCode *subst = NULL);
   VarCode unfold(int v1, int v2, int n, SubstCode *subst, Pos pos);
   void dump();
-}; 
+};
 
 class ASTTerm2_Interval: public ASTTerm2 {
 public:
   ASTTerm2_Interval(ASTTerm1 *tt1, ASTTerm1 *tt2, Pos p) :
-    ASTTerm2(aInterval, p), t1(tt1), t2(tt2) {} 
+    ASTTerm2(aInterval, p), t1(tt1), t2(tt2) {}
   ~ASTTerm2_Interval() {delete t1; delete t2;}
 
   void freeVars(IdentList*, IdentList*);
@@ -1056,6 +1057,7 @@ public:
   ASTForm* toPrenexNormalForm();
   ASTForm* unfoldNegations();
   ASTForm* removeUniversalQuantifier();
+  ASTForm* prefixToSecondOrder();
 
   void toUnaryAutomaton(Automaton &aut, bool doComplement);
   void toBinaryAutomaton(Automaton &aut, bool doComplement);
@@ -1086,6 +1088,7 @@ public:
 
   ASTForm* toRestrictedSyntax();
   ASTForm* flatten();
+  ASTForm* prefixToSecondOrder();
 };
 
 class ASTForm_Ex2: public ASTForm_uvf {
@@ -1098,6 +1101,7 @@ public:
   ASTForm* clone() { return new ASTForm_Ex2(this->ul, this->vl->copy(), this->f->clone(), this->pos); }
 
   ASTForm* toRestrictedSyntax();
+  ASTForm* prefixToSecondOrder();
 };
 
 class ASTForm_All0: public ASTForm_vf {
@@ -1121,7 +1125,7 @@ public:
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_All1(this->ul, this->vl->copy(), this->f->clone(), this->pos); }
-  
+
   ASTForm* toRestrictedSyntax();
   ASTForm* removeUniversalQuantifier();
   ASTForm* flatten();
@@ -1208,7 +1212,7 @@ protected:
   ASTList *args;
   int n;
 
-  VarCode fold(ASTList::iterator iter, IdentList &actuals, 
+  VarCode fold(ASTList::iterator iter, IdentList &actuals,
 	       SubstCode *subst = NULL);
 };
 
@@ -1217,12 +1221,12 @@ public:
   ASTForm_Import(char* fil, Deque<char*> *fv, IdentList *ids, Pos p) :
     ASTForm(aImport, p), file(fil), fileVars(fv), idents(ids) {}
   ~ASTForm_Import() {delete idents;}
-  
+
   void freeVars(IdentList*, IdentList*);
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_Import(*this); }
-  
+
 protected:
   char *file;
   Deque<char*> *fileVars;
@@ -1233,20 +1237,20 @@ class ASTForm_Export: public ASTForm_f {
 public:
   ASTForm_Export(ASTForm *ff, char* fil, Pos p) :
     ASTForm_f(aExport, ff, p), file(fil) {}
-  
+
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_Export(*this); }
-  
+
 protected:
   char *file;
 };
-  
+
 class ASTForm_Prefix: public ASTForm_f {
 public:
   ASTForm_Prefix(ASTForm *ff, Pos p) :
     ASTForm_f(aPrefix, ff, p) {}
-  
+
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_Prefix(*this); }
@@ -1256,7 +1260,7 @@ class ASTForm_Restrict: public ASTForm_f {
 public:
   ASTForm_Restrict(ASTForm *ff, Pos p) :
     ASTForm_f(aRestrict, ff, p) {}
-  
+
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_Restrict(*this); }
@@ -1267,44 +1271,44 @@ public:
   ASTForm_InStateSpace1(ASTTerm1 *tt, IdentList *s, Pos p) :
     ASTForm(aInStateSpace1, p), t(tt), ss(s) {}
   ~ASTForm_InStateSpace1() {delete t; delete ss;}
-  
+
   void freeVars(IdentList*, IdentList*);
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_InStateSpace1(*this); }
-  
+
 protected:
   ASTTerm1 *t;
   IdentList *ss;
 };
- 
+
 class ASTForm_InStateSpace2: public ASTForm {
 public:
   ASTForm_InStateSpace2(ASTTerm2 *TT, IdentList *s, Pos p) :
     ASTForm(aInStateSpace2, p), T(TT), ss(s) {}
   ~ASTForm_InStateSpace2() {delete T; delete ss;}
-  
+
   void freeVars(IdentList*, IdentList*);
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_InStateSpace2(*this); }
-  
+
 protected:
   ASTTerm2 *T;
   IdentList *ss;
 };
- 
+
 class  ASTForm_SomeType: public ASTForm {
 public:
   ASTForm_SomeType(ASTTerm *tt, Pos p) :
     ASTForm(aSomeType, p), t(tt) {}
   ~ASTForm_SomeType() {delete t;}
-  
+
   void freeVars(IdentList*, IdentList*);
   VarCode makeCode(SubstCode *subst = NULL);
   void dump();
   ASTForm* clone() { return new ASTForm_SomeType(*this); }
-  
+
 protected:
   ASTTerm *t;
 };
@@ -1316,7 +1320,7 @@ public:
   MonaAST(ASTForm *f, ASTForm *a) :
     formula(f), assertion(a), lastPosVar(-1), allPosVar(-1) {}
   ~MonaAST() {delete formula; delete assertion;}
-  
+
   ASTForm *formula;
   ASTForm *assertion;
 
