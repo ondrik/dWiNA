@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <boost/functional/hash.hpp>
 
-#define USE_SUBSUMPTION
+// #define USE_SUBSUMPTION
 
 namespace std
 {
@@ -171,15 +171,21 @@ bool NewStateSet::AddStateToSet(
 {
 	assert(level > 0);
 
-	// std::cerr << "[AddStateToSet] level = " << level << "\n";
-	// std::cerr << "[AddStateToSet] set = ";
-	// NewStateSet::DumpSetOfStates(std::cerr, stateSet, level);
-	// std::cerr << "\n";
-	// std::cerr << "[AddStateToSet] newState = " << newState << "\n";
+	std::cerr << "[AddStateToSet] level = " << level << "\n";
+	std::cerr << "[AddStateToSet] set = ";
+	NewStateSet::DumpSetOfStates(std::cerr, stateSet, level);
+	std::cerr << "\n";
+	std::cerr << "[AddStateToSet] newState = " << newState << "\n";
 
 	if (1 == level)
 	{
-		return stateSet.insert(newState).second;
+		bool added = stateSet.insert(newState).second;
+
+		std::cerr << "[AddStateToSet] result = ";
+		NewStateSet::DumpSetOfStates(std::cerr, stateSet, level);
+		std::cerr << "\n";
+
+		return added;
 	}
 
 	auto it = stateSet.begin();
@@ -188,6 +194,10 @@ bool NewStateSet::AddStateToSet(
 		StateType state = *it;
 		if (NewStateSet::IsSubsumedBy(newState, state, level-1))
 		{	// if 'newState' adds nothing new
+			std::cerr << "[AddStateToSet] result = ";
+			NewStateSet::DumpSetOfStates(std::cerr, stateSet, level);
+			std::cerr << "\n";
+
 			return false;
 		}
 		else if (NewStateSet::IsSubsumedBy(state, newState, level-1))
@@ -206,6 +216,10 @@ bool NewStateSet::AddStateToSet(
 	{
 		assert(false);
 	}
+
+	std::cerr << "[AddStateToSet] result = ";
+	NewStateSet::DumpSetOfStates(std::cerr, stateSet, level);
+	std::cerr << "\n";
 
 	return true;
 }

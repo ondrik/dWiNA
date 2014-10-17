@@ -299,7 +299,7 @@ public:
  * MacroStateDeterminizatorFunctor creates MacroStates out of leaf states
  */
 GCC_DIAG_OFF(effc++)
-class MacroStateDeterminizatorFunctorNew : public VATA::MTBDDPkg::Apply1Functor<MacroStateDeterminizatorFunctorNew, StateType, StateType> {
+class MacroStateDeterminizatorFunctorNew : public VATA::MTBDDPkg::Apply1Functor<MacroStateDeterminizatorFunctorNew, SetOfStates, StateType> {
 GCC_DIAG_ON(effc++)
 public:
 	// < Public Methods >
@@ -307,8 +307,12 @@ public:
 	 * @param lhs: operand - macro-state state of level i
 	 * @return: macro state of level i+1
 	 */
-	inline StateType ApplyOperation(StateType lhs) {
-		return NewStateSet::GetUniqueSetHandle(SetOfStates({lhs}));
+	inline StateType ApplyOperation(const SetOfStates& lhs)
+	{
+		std::cerr << "[MacroStateDeterminizatorFunctorNew] determinizing ";
+		NewStateSet::DumpSetOfStates(std::cerr, lhs, 1);
+		std::cerr << "\n";
+		return NewStateSet::GetUniqueSetHandle(lhs);
 	}
 };
 
@@ -318,7 +322,8 @@ public:
  * in process
  */
 GCC_DIAG_OFF(effc++)
-class MacroPrunedUnionFunctorNew : public VATA::MTBDDPkg::Apply2Functor<MacroPrunedUnionFunctorNew, StateType, StateType, StateType> {
+class MacroPrunedUnionFunctorNew : public VATA::MTBDDPkg::Apply2Functor<MacroPrunedUnionFunctorNew, SetOfStates, SetOfStates, SetOfStates>
+{
 GCC_DIAG_ON(effc++)
 private:
 
@@ -334,34 +339,32 @@ public:
 	 * @param rhs: right operand
 	 * @return union of leaf operands
 	 */
-	inline StateType ApplyOperation(StateType lhs, StateType rhs)
+	inline SetOfStates ApplyOperation(const SetOfStates& lhs, const SetOfStates& rhs)
 	{
-		const SetOfStates& lhsStates = NewStateSet::GetSetForHandle(lhs);
-		const SetOfStates& rhsStates = NewStateSet::GetSetForHandle(rhs);
-		SetOfStates unionStates = lhsStates;
+		SetOfStates unionStates = lhs;
 
 		// unionStates.insert(rhsStates.cbegin(), rhsStates.cend());
-		for (StateType state : rhsStates)
+		for (StateType state : rhs)
 		{
-			// std::cerr << "[MacroPrunedUnionFunctorNew] calling AddStateToSet: add ";;
-			// NewStateSet::DumpHandle(std::cerr, state, level-1);
-			// std::cerr << " to ";
-			// NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
-			// std::cerr << ", level=" << level << "\n";
+			std::cerr << "[MacroPrunedUnionFunctorNew] calling AddStateToSet: add ";;
+			NewStateSet::DumpHandle(std::cerr, state, level-1);
+			std::cerr << " to ";
+			NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
+			std::cerr << ", level=" << level << "\n";
 
 			NewStateSet::AddStateToSet(unionStates, state, level);
 			// unionStates.insert(state);
 		}
 
-		// std::cerr << "[MacroPrunedUnionFunctorNew] getting predecessors ";
-		// NewStateSet::DumpHandle(std::cerr, lhs, level);
-		// std::cerr << " + ";
-		// NewStateSet::DumpHandle(std::cerr, rhs, level);
-		// std::cerr << " => ";
-		// NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
-		// std::cerr << "\n";
+		std::cerr << "[MacroPrunedUnionFunctorNew] getting predecessors ";
+		NewStateSet::DumpSetOfStates(std::cerr, lhs, level);
+		std::cerr << " + ";
+		NewStateSet::DumpSetOfStates(std::cerr, rhs, level);
+		std::cerr << " => ";
+		NewStateSet::DumpSetOfStates(std::cerr, unionStates, level);
+		std::cerr << "\n";
 
-		return NewStateSet::GetUniqueSetHandle(unionStates);
+		return unionStates;
 	}
 };
 
@@ -369,7 +372,7 @@ public:
  * StateDeterminizator makes out of leafs macro-states
  */
 GCC_DIAG_OFF(effc++)
-class StateDeterminizatorFunctorNew : public VATA::MTBDDPkg::Apply1Functor<StateDeterminizatorFunctorNew, MTBDDLeafStateSet, StateType> {
+class StateDeterminizatorFunctorNew : public VATA::MTBDDPkg::Apply1Functor<StateDeterminizatorFunctorNew, MTBDDLeafStateSet, SetOfStates> {
 GCC_DIAG_ON(effc++)
 public:
 	// < Public Methods >
@@ -377,7 +380,7 @@ public:
 	 * @param lhs: operand of determinization
 	 * @return determinized macro-state
 	 */
-	inline StateType ApplyOperation(const MTBDDLeafStateSet & lhs)
+	inline SetOfStates ApplyOperation(const MTBDDLeafStateSet & lhs)
 	{
 		SetOfStates states;
 
@@ -390,8 +393,65 @@ public:
 		// NewStateSet::DumpSetOfStates(std::cerr, states, 0);
 		// std::cerr << "\n";
 
-		return NewStateSet::GetUniqueSetHandle(states);
+		return states;
 	}
 };
 
+/**
+ * MacroUnionFunctor does the union of two automata, during the union states inside
+ * are pruned according to the defined simulation relation to yield smaller leaves
+ * in process
+ */
+GCC_DIAG_OFF(effc++)
+class MacroPrunedUnionFunctorAdder : public VATA::MTBDDPkg::Apply2Functor<MacroPrunedUnionFunctorAdder, SetOfStates, StateType, SetOfStates> {
+GCC_DIAG_ON(effc++)
+private:
+
+public:
+	unsigned int level;
+
+	// < Public Constructors>
+	MacroPrunedUnionFunctorAdder(unsigned int l) : level(l) {}
+
+	// < Public Methods >
+	/**
+	 * @param lhs: left operand
+	 * @param rhs: right operand
+	 * @return union of leaf operands
+	 */
+	inline SetOfStates ApplyOperation(const SetOfStates& lhs, StateType rhs)
+	{
+		SetOfStates unionStates = lhs;
+
+		std::cerr << "[MacroPrunedUnionFunctorAdder] adding: ";
+		NewStateSet::DumpHandle(std::cerr, rhs, level);
+		std::cerr << " to ";
+		NewStateSet::DumpSetOfStates(std::cerr, lhs, level+1);
+		std::cerr << "\n";
+
+		NewStateSet::AddStateToSet(unionStates, rhs, level);
+		return unionStates;
+	}
+};
+
+GCC_DIAG_OFF(effc++)
+class MacroToSetFctor : public VATA::MTBDDPkg::Apply1Functor<MacroToSetFctor, StateType, SetOfStates>
+{
+GCC_DIAG_ON(effc++)
+public:
+
+	// < Public Constructors>
+	MacroToSetFctor() {}
+
+	// < Public Methods >
+	/**
+	 * @param lhs: left operand
+	 * @param rhs: right operand
+	 * @return union of leaf operands
+	 */
+	inline SetOfStates ApplyOperation(StateType val)
+	{
+		return SetOfStates({val});
+	}
+};
 #endif
