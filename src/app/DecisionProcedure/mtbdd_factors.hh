@@ -13,6 +13,7 @@
 
 #include "mtbdd/apply1func.hh"
 #include "mtbdd/apply2func.hh"
+#include "mtbdd/pers_cache_apply2func.hh"
 #include "mtbdd/void_apply1func.hh"
 #include "containers/StateSet.hh"
 #include "decision_procedures.hh"
@@ -322,7 +323,7 @@ public:
  * in process
  */
 GCC_DIAG_OFF(effc++)
-class MacroPrunedUnionFunctorNew : public VATA::MTBDDPkg::Apply2Functor<MacroPrunedUnionFunctorNew, SetOfStates, SetOfStates, SetOfStates>
+class MacroPrunedUnionFunctorNew : public VATA::MTBDDPkg::PersCacheApply2Functor<MacroPrunedUnionFunctorNew, SetOfStates, SetOfStates, SetOfStates>
 {
 GCC_DIAG_ON(effc++)
 private:

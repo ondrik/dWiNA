@@ -45,6 +45,9 @@ namespace VATA
 		template <class, typename, typename, typename>
 		class Apply2Functor;
 
+		template <class, typename, typename, typename>
+		class PersCacheApply2Functor;
+
 		template <class, typename, typename, typename, typename>
 		class Apply3Functor;
 
@@ -78,6 +81,9 @@ class VATA::MTBDDPkg::OndriksMTBDD
 
 	template <class, typename, typename, typename>
 	friend class Apply2Functor;
+
+	template <class, typename, typename, typename>
+	friend class PersCacheApply2Functor;
 
 	template <class, typename, typename, typename, typename>
 	friend class Apply3Functor;
@@ -268,7 +274,7 @@ private:  // private methods
 
 			if (DecrementInternalRefCnt(node) == 0)
 			{	// this reference to node is the last
-				disposeOfInternalNode(node);
+				// disposeOfInternalNode(node);
 			}
 		}
 	}
